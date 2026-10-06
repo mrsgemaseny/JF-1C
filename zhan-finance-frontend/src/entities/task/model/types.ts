@@ -57,6 +57,8 @@ export interface EmployeeInfoDto {
   avatarUrl?: string;
 }
 
+export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+
 export type SubtaskStatus = 'NEW' | 'IN_PROGRESS' | 'DONE';
 
 export interface SubtaskDto {

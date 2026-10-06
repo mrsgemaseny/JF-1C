@@ -6,7 +6,6 @@
     "types": ["vite/client", "node", "vitest/globals"],
     "skipLibCheck": true,
     "strict": true,
-    "ignoreDeprecations": "6.0",
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
