@@ -37,13 +37,16 @@ public class TwoFactorService {
     private final CodeVerifier codeVerifier;
     private final UserRepository userRepository;
     private final TwoFactorPreAuthRepository preAuthRepository;
+    private final RefreshTokenService refreshTokenService;
 
     public TwoFactorService(
             UserRepository userRepository,
-            TwoFactorPreAuthRepository preAuthRepository
+            TwoFactorPreAuthRepository preAuthRepository,
+            RefreshTokenService refreshTokenService
     ) {
         this.userRepository = userRepository;
         this.preAuthRepository = preAuthRepository;
+        this.refreshTokenService = refreshTokenService;
         this.secretGenerator = new DefaultSecretGenerator();
         this.qrGenerator = new ZxingPngQrGenerator();
 
@@ -78,11 +81,14 @@ public class TwoFactorService {
 
     @Transactional
     public void confirmSetup(User user, String secret, String code) {
+        User persistentUser = userRepository.findById(user.getId())
+                .orElseThrow(() -> new BadRequestException("Пользователь не найден"));
+        if (persistentUser.isTwoFactorEnabled()) {
+            throw new BadRequestException("Двухфакторная аутентификация уже настроена");
+        }
         if (!codeVerifier.isValidCode(secret, code)) {
             throw new BadRequestException("Неверный код подтверждения 2FA");
         }
-        User persistentUser = userRepository.findById(user.getId())
-                .orElseThrow(() -> new BadRequestException("Пользователь не найден"));
         persistentUser.setTotpSecret(secret);
         persistentUser.setTwoFactorEnabled(true);
         userRepository.save(persistentUser);
@@ -117,11 +123,55 @@ public class TwoFactorService {
                 .orElseThrow(() -> new UnauthorizedException("Пользователь не найден"));
     }
 
+    @Transactional(readOnly = true)
+    public User getUserForPreAuthSetup(String token) {
+        User user = getUserByPreAuthToken(token);
+        if (user.isTwoFactorEnabled()) {
+            throw new BadRequestException("Двухфакторная аутентификация уже настроена");
+        }
+        return user;
+    }
+
     @Transactional
     public User confirmSetupWithPreAuth(String token, String secret, String code) {
-        User user = getUserByPreAuthToken(token);
-        confirmSetup(user, secret, code);
-        return userRepository.findById(user.getId()).orElse(user);
+        TwoFactorPreAuth preAuth = preAuthRepository.findByToken(token)
+                .orElseThrow(() -> new UnauthorizedException("Недействительный токен 2FA"));
+
+        if (preAuth.getExpiresAt().isBefore(LocalDateTime.now())) {
+            preAuthRepository.delete(preAuth);
+            throw new UnauthorizedException("Срок действия токена 2FA истек. Войдите заново.");
+        }
+
+        User user = userRepository.findById(preAuth.getUser().getId())
+                .orElseThrow(() -> new UnauthorizedException("Пользователь не найден"));
+
+        if (user.isTwoFactorEnabled()) {
+            throw new BadRequestException("Двухфакторная аутентификация уже настроена");
+        }
+
+        if (preAuth.getAttempts() >= 5) {
+            preAuthRepository.delete(preAuth);
+            throw new UnauthorizedException("Превышен лимит попыток. Войдите заново.");
+        }
+
+        if (!codeVerifier.isValidCode(secret, code)) {
+            preAuth.setAttempts(preAuth.getAttempts() + 1);
+            preAuthRepository.save(preAuth);
+            if (preAuth.getAttempts() >= 5) {
+                preAuthRepository.delete(preAuth);
+                throw new UnauthorizedException("Превышен лимит попыток. Войдите заново.");
+            }
+            throw new BadRequestException("Неверный код подтверждения 2FA");
+        }
+
+        User persistentUser = userRepository.findById(user.getId())
+                .orElseThrow(() -> new BadRequestException("Пользователь не найден"));
+        persistentUser.setTotpSecret(secret);
+        persistentUser.setTwoFactorEnabled(true);
+        userRepository.save(persistentUser);
+
+        refreshTokenService.revokeAll(persistentUser);
+        return persistentUser;
     }
 
     @Transactional

@@ -34,6 +34,9 @@ class TwoFactorServiceTest {
     @Mock
     private TwoFactorPreAuthRepository preAuthRepository;
 
+    @Mock
+    private RefreshTokenService refreshTokenService;
+
     @InjectMocks
     private TwoFactorService twoFactorService;
 
@@ -118,8 +121,51 @@ class TwoFactorServiceTest {
 
     @Test
     void confirmSetup_InvalidCode_ThrowsBadRequestException() {
+        when(userRepository.findById(testUser.getId())).thenReturn(Optional.of(testUser));
         assertThrows(BadRequestException.class, () -> 
             twoFactorService.confirmSetup(testUser, "JBSWY3DPEHPK3PXP", "000000")
+        );
+    }
+
+    @Test
+    void confirmSetup_WhenAlreadyEnabled_ThrowsBadRequestException() {
+        testUser.setTwoFactorEnabled(true);
+        when(userRepository.findById(testUser.getId())).thenReturn(Optional.of(testUser));
+
+        assertThrows(BadRequestException.class, () -> 
+            twoFactorService.confirmSetup(testUser, "JBSWY3DPEHPK3PXP", "123456")
+        );
+    }
+
+    @Test
+    void getUserForPreAuthSetup_WhenAlreadyEnabled_ThrowsBadRequestException() {
+        testUser.setTwoFactorEnabled(true);
+        TwoFactorPreAuth preAuth = new TwoFactorPreAuth();
+        preAuth.setUser(testUser);
+        preAuth.setToken("preauth-token");
+        preAuth.setExpiresAt(LocalDateTime.now().plusMinutes(5));
+
+        when(preAuthRepository.findByToken("preauth-token")).thenReturn(Optional.of(preAuth));
+        when(userRepository.findById(testUser.getId())).thenReturn(Optional.of(testUser));
+
+        assertThrows(BadRequestException.class, () ->
+            twoFactorService.getUserForPreAuthSetup("preauth-token")
+        );
+    }
+
+    @Test
+    void confirmSetupWithPreAuth_WhenAlreadyEnabled_ThrowsBadRequestException() {
+        testUser.setTwoFactorEnabled(true);
+        TwoFactorPreAuth preAuth = new TwoFactorPreAuth();
+        preAuth.setUser(testUser);
+        preAuth.setToken("preauth-token");
+        preAuth.setExpiresAt(LocalDateTime.now().plusMinutes(5));
+
+        when(preAuthRepository.findByToken("preauth-token")).thenReturn(Optional.of(preAuth));
+        when(userRepository.findById(testUser.getId())).thenReturn(Optional.of(testUser));
+
+        assertThrows(BadRequestException.class, () ->
+            twoFactorService.confirmSetupWithPreAuth("preauth-token", "JBSWY3DPEHPK3PXP", "123456")
         );
     }
 }

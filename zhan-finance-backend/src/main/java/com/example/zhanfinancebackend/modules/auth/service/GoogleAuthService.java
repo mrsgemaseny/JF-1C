@@ -188,14 +188,21 @@ public class GoogleAuthService {
             isNewUser = true;
         }
 
-        if (user.isTwoFactorEnabled()) {
-            if (user.getRole() == Role.ADMIN) {
-                telegramNotifierService.sendAdminNotificationAsync(
-                        "Попытка входа администратора",
-                        "Администратор " + user.getEmail() + " проходит авторизацию (Google, ожидается 2FA).",
-                        null
-                );
+        if (user.getRole() == Role.ADMIN) {
+            if (!user.isTwoFactorEnabled()) {
+                String preAuthToken = twoFactorService.createPreAuthToken(user);
+                return AuthResponse.requires2FASetup(preAuthToken);
             }
+            telegramNotifierService.sendAdminNotificationAsync(
+                    "Попытка входа администратора",
+                    "Администратор " + user.getEmail() + " проходит авторизацию (Google, ожидается 2FA).",
+                    null
+            );
+            String preAuthToken = twoFactorService.createPreAuthToken(user);
+            return AuthResponse.requires2FA(preAuthToken);
+        }
+
+        if (user.isTwoFactorEnabled()) {
             String preAuthToken = twoFactorService.createPreAuthToken(user);
             return AuthResponse.requires2FA(preAuthToken);
         }

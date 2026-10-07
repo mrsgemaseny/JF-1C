@@ -142,6 +142,20 @@ export function confirm2FASetup(secret: string, code: string): Promise<void> {
   });
 }
 
+export function get2FASetupPreAuth(preAuthToken: string): Promise<TwoFactorSetupResponse> {
+  return apiRequest<TwoFactorSetupResponse>(
+    `/api/v1/auth/2fa/setup-preauth?preAuthToken=${encodeURIComponent(preAuthToken)}`,
+    { method: 'GET' }
+  );
+}
+
+export function confirm2FASetupPreAuth(preAuthToken: string, secret: string, code: string): Promise<AuthResponse> {
+  return apiRequest<AuthResponse>('/api/v1/auth/2fa/setup-preauth/confirm', {
+    method: 'POST',
+    body: JSON.stringify({ preAuthToken, secret, code })
+  });
+}
+
 export function disable2FA(code: string): Promise<void> {
   return apiRequest<void>('/api/v1/auth/2fa/disable', {
     method: 'POST',

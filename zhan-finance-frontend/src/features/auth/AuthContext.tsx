@@ -23,7 +23,7 @@ export interface AuthContextValue {
   setUser: (user: StoredAuth | null) => void;
   updateUser: (fields: Partial<StoredAuth>) => void;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<{ requires2FA?: boolean; requiresEmailOtp?: boolean; preAuthToken?: string } | void>;
+  login: (email: string, password: string) => Promise<{ requires2FA?: boolean; requires2FASetup?: boolean; requiresEmailOtp?: boolean; preAuthToken?: string } | void>;
   completeAuth: (response: authApi.AuthResponse) => void;
   loginWithGoogle: (credential: string, role?: 'CLIENT' | 'EMPLOYEE') => Promise<{ requires2FA?: boolean; preAuthToken?: string; isPendingApproval?: boolean; isNewUser?: boolean }>;
   register: (req: authApi.RegisterRequest) => Promise<{ isPendingApproval: boolean; requiresEmailOtp?: boolean; preAuthToken?: string; devOtpCode?: string }>;
@@ -94,7 +94,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return { requiresEmailOtp: true, preAuthToken: response.preAuthToken };
         }
         if (response.requires2FA && response.preAuthToken) {
-          return { requires2FA: true, preAuthToken: response.preAuthToken };
+          return {
+            requires2FA: true,
+            requires2FASetup: response.twoFactorEnabled === false,
+            preAuthToken: response.preAuthToken
+          };
         }
         setUser(toStoredAuth(response));
       } finally {

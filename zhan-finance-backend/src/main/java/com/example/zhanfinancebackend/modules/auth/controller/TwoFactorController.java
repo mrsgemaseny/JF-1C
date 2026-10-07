@@ -45,7 +45,7 @@ public class TwoFactorController {
 
     @GetMapping("/setup-preauth")
     public ApiResponse<TwoFactorSetupDto> getSetupPreAuth(@org.springframework.web.bind.annotation.RequestParam String preAuthToken) {
-        User user = twoFactorService.getUserByPreAuthToken(preAuthToken);
+        User user = twoFactorService.getUserForPreAuthSetup(preAuthToken);
         TwoFactorSetupDto setupDto = twoFactorService.generateSetup(user);
         return ApiResponse.success(setupDto);
     }

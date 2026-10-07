@@ -64,10 +64,12 @@ public record AuthResponse(
         this(accessToken, refreshToken, tokenType, id, email, fullName, role, isNewUser, avatarUrl, authProvider, locale, requires2FA, preAuthToken, twoFactorEnabled, isPendingApproval, requiresEmailOtp, googleLinked, googleEmail, null);
     }
 
+    /** 2FA уже настроена: клиент должен показать форму ввода TOTP-кода. */
     public static AuthResponse requires2FA(String preAuthToken) {
-        return new AuthResponse(null, null, null, null, null, null, null, false, null, null, null, true, preAuthToken, false, false, false, false, null, null);
+        return new AuthResponse(null, null, null, null, null, null, null, false, null, null, null, true, preAuthToken, true, false, false, false, null, null);
     }
 
+    /** 2FA обязательна, но не настроена (twoFactorEnabled=false): клиент должен показать QR-настройку через /2fa/setup-preauth. */
     public static AuthResponse requires2FASetup(String preAuthToken) {
         return new AuthResponse(null, null, null, null, null, null, null, false, null, null, null, true, preAuthToken, false, false, false, false, null, null);
     }

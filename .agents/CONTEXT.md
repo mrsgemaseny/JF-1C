@@ -71,5 +71,11 @@
     - JaCoCo threshold повышен до 52% (0.52).
     - 363 backend теста (100% PASS), 198 frontend тестов (100% PASS), `tsc --noEmit` — 0 ошибок.
 
+11. **2FA Hardening & Pre-Auth Setup Flow [DONE]**:
+    - Разграничен `AuthResponse`: `twoFactorEnabled = false` сигнализирует необходимость настройки (`requires2FASetup`), `true` — ввод кода (`requires2FA`).
+    - Закрыты обходы 2FA через `/setup-preauth` и Google OAuth для роли `ADMIN`.
+    - Добавлен лимит попыток ввода кода при настройке (5 попыток), аннулирование всех старых refresh-сессий при включении.
+    - Реализован `TotpSetupForm.tsx` с QR-кодом, копированием секрета и полной поддержкой 4 локалей (`ru`, `kk`, `en`, `zh`).
+
 ## NEXT: Hardening Plan (P2 Roadmap)
 Staging, Cursor pagination, Audit partitioning, SBOM, Dependabot, Trivy, ADR, Semver, Document versioning, Soft delete, PII inventory, Log sanitization, Backward-compatible migrations, Preview envs, DR plan, Invoice line model, File upload hardening, PDF limits, CORS audit, Observability stack.

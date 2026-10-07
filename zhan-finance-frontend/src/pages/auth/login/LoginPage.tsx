@@ -6,6 +6,7 @@ import { ApiError, extractValidationErrors } from '@/shared/api/http';
 import { useAuth } from '@/features/auth/AuthContext';
 import { AuthResponse } from '@/features/auth/authApi';
 import { TotpVerifyForm } from '@/features/auth/ui/TotpVerifyForm';
+import { TotpSetupForm } from '@/features/auth/ui/TotpSetupForm';
 import { GoogleLogin } from '@react-oauth/google';
 import { Input } from '@/shared/ui/Input/Input';
 import { toast } from '@/shared/ui/Toast/ToastContext';
@@ -24,7 +25,7 @@ export function LoginPage() {
   const location = useLocation();
   const state = location.state as { preAuthToken?: string } | null;
 
-  const [step, setStep] = useState<'CREDENTIALS' | 'TOTP'>('CREDENTIALS');
+  const [step, setStep] = useState<'CREDENTIALS' | 'TOTP' | 'TOTP_SETUP'>('CREDENTIALS');
   const [preAuthToken, setPreAuthToken] = useState<string>('');
 
   useEffect(() => {
@@ -105,7 +106,7 @@ export function LoginPage() {
       const res = await login(email.trim(), password);
       if (res && res.requires2FA && res.preAuthToken) {
         setPreAuthToken(res.preAuthToken);
-        setStep('TOTP');
+        setStep(res.requires2FASetup ? 'TOTP_SETUP' : 'TOTP');
         return;
       }
       toast.success(t('login.loginSuccess'));
@@ -162,7 +163,16 @@ export function LoginPage() {
           <LanguageSwitcher />
         </div>
 
-        {step === 'TOTP' ? (
+        {step === 'TOTP_SETUP' ? (
+          <TotpSetupForm
+            preAuthToken={preAuthToken}
+            onSuccess={handleTotpSuccess}
+            onBack={() => {
+              setStep('CREDENTIALS');
+              setPreAuthToken('');
+            }}
+          />
+        ) : step === 'TOTP' ? (
           <TotpVerifyForm
             preAuthToken={preAuthToken}
             onSuccess={handleTotpSuccess}
