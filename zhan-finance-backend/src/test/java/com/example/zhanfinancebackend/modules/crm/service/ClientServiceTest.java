@@ -12,6 +12,7 @@ import com.example.zhanfinancebackend.modules.notifications.service.Notification
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -79,5 +80,25 @@ class ClientServiceTest {
 
         assertEquals(employee, client.getAssignedEmployee());
         verify(userRepository).save(client);
+    }
+
+    @Test
+    void testGetAllClients_UsesSingleBatchQuery() {
+        User client = new User();
+        client.setId(1L);
+        client.setRole(Role.CLIENT);
+
+        ClientProfile profile = new ClientProfile(client);
+        profile.setUser(client);
+
+        when(userRepository.findClientsWithoutProfile()).thenReturn(java.util.Collections.emptyList());
+        when(clientProfileRepository.findAllWithUser()).thenReturn(List.of(profile));
+
+        var result = clientService.getAllClients();
+
+        assertEquals(1, result.size());
+        verify(userRepository).findClientsWithoutProfile();
+        verify(userRepository, never()).findAllByRole(any());
+        verify(clientProfileRepository).findAllWithUser();
     }
 }

@@ -15,12 +15,18 @@ import java.util.Optional;
 
 public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
 
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"user"})
     Page<Invoice> findAllByUser(User user, Pageable pageable);
+
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"user"})
     List<Invoice> findAllByUser(User user);
 
     Optional<Invoice> findByIdAndUser(Long id, User user);
 
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"user"})
     Page<Invoice> findAllByUserAssignedEmployee(User employee, Pageable pageable);
+
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"user"})
     List<Invoice> findAllByUserAssignedEmployee(User employee);
 
     @Query(

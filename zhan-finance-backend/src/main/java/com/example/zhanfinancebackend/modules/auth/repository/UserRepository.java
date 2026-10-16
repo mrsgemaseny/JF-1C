@@ -29,6 +29,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
     
     List<User> findAllByAssignedEmployee(User employee);
 
+    @Query("SELECT u FROM User u WHERE u.role = 'CLIENT' AND u.deletedAt IS NULL AND NOT EXISTS (SELECT cp FROM com.example.zhanfinancebackend.modules.crm.entity.ClientProfile cp WHERE cp.user = u)")
+    List<User> findClientsWithoutProfile();
+
     @Query("SELECT DISTINCT e FROM User e JOIN User c ON c.assignedEmployee = e WHERE e.role = 'EMPLOYEE' AND e.deletedAt IS NULL")
     List<User> findAssignedEmployees();
 

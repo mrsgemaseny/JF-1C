@@ -23,8 +23,8 @@
    - **Frontend Architecture & FSD**: Moved `TaskDetailsModal` to `@/widgets/task-details-modal`, unified `ApiError` handling with retry filters, secured login/register from Open Redirect, safe STOMP WebSocket teardown handling in-flight handshakes and visibility changes.
    - **100% 4-Language i18n Parity**: Synchronized `ru`, `kk`, `en`, `zh` for labels, otp, settings google/telegram, billing stats. Zero hardcoded UI strings, zero Cyrillic characters in Chinese translations.
 
-2. **Full Automated Test Coverage Across Backend, Frontend & Microservices**:
-   - Monolith Backend: 369 tests PASS (`./gradlew check`).
+2. **Full Automated Test Coverage & N+1 Optimization Across Backend, Frontend & Microservices**:
+   - Monolith Backend: 370 tests PASS (`./gradlew check`). All N+1 hotspots eliminated: `findClientsWithoutProfile`, `@EntityGraph` on invoices, `default_batch_fetch_size=50`, `SUBSELECT` and `@BatchSize` across collections.
    - Telegram Bot: 89 tests PASS (`./gradlew check`).
    - Frontend: 198 tests PASS (25 files), `npx tsc -b` 0 errors, `npm run lint` 0 warnings.
 

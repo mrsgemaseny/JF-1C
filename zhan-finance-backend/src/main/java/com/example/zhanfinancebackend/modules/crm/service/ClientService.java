@@ -42,10 +42,7 @@ public class ClientService {
     @Transactional
     public List<ClientDto> getAllClients() {
         
-        List<User> clientsWithoutProfile = userRepository.findAllByRole(Role.CLIENT).stream()
-                .filter(user -> clientProfileRepository.findByUser(user).isEmpty())
-                .toList();
-
+        List<User> clientsWithoutProfile = userRepository.findClientsWithoutProfile();
         for (User client : clientsWithoutProfile) {
             ensureProfile(client);
         }
