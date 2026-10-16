@@ -16,8 +16,15 @@ public class CacheConfig {
         CaffeineCacheManager manager = new CaffeineCacheManager();
         manager.registerCustomCache("dashboard",
                 Caffeine.newBuilder().expireAfterWrite(60, TimeUnit.SECONDS).maximumSize(100).recordStats().build());
+        manager.registerCustomCache("dashboard_admin",
+                Caffeine.newBuilder().expireAfterWrite(30, TimeUnit.SECONDS).maximumSize(100).recordStats().build());
+        manager.registerCustomCache("dashboard_employee",
+                Caffeine.newBuilder().expireAfterWrite(30, TimeUnit.SECONDS).maximumSize(100).recordStats().build());
+        manager.registerCustomCache("dashboard_client",
+                Caffeine.newBuilder().expireAfterWrite(30, TimeUnit.SECONDS).maximumSize(100).recordStats().build());
         manager.registerCustomCache("tasks",
                 Caffeine.newBuilder().expireAfterWrite(30, TimeUnit.SECONDS).maximumSize(500).recordStats().build());
+
         manager.registerCustomCache("users",
                 Caffeine.newBuilder().expireAfterWrite(300, TimeUnit.SECONDS).maximumSize(200).recordStats().build());
         manager.registerCustomCache("courses",

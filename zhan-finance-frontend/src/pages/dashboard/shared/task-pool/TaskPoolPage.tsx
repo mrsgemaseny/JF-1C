@@ -3,7 +3,7 @@ import { useAuth } from '@/features/auth/AuthContext';
 import { useTasksQuery } from '@/entities/task/api/taskQueries';
 import { useQueryClient } from '@tanstack/react-query';
 import { Users, Loader2, Inbox } from 'lucide-react';
-import { TaskDetailsModal } from '@/entities/task/ui/TaskDetailsModal';
+import { TaskDetailsModal } from '@/widgets/task-details-modal/ui/TaskDetailsModal';
 import { StatusBadge } from '@/shared/ui/Badge';
 import { getEmployees } from '@/entities/employee/api/employeeApi';
 import type { EmployeeDto } from '@/entities/employee/model/types';

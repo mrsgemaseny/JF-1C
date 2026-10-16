@@ -372,7 +372,38 @@
     "saving": "正在保存...",
     "googleNoPassword": "由于您通过 Google 授权登录，密码在此不可编辑。请在 Google 账户管理安全。",
     "language": "界面语言",
-    "languageDesc": "选择您在工作台中默认使用的语言"
+    "languageDesc": "选择您在工作台中默认使用的语言",
+    "google": {
+      "title": "Google 账号",
+      "description": "关联您的 Google 账号，以便一键快速安全登录。",
+      "linked": "Google 已关联",
+      "notLinked": "Google 未关联",
+      "notLinkedDesc": "可使用账号密码登录",
+      "linkSuccess": "Google 账号关联成功！",
+      "linkError": "关联 Google 账号失败",
+      "gisError": "Google Identity Services 错误"
+    },
+    "telegram": {
+      "title": "Telegram",
+      "description": "关联 Telegram 账号，直接在机器人中接收任务、账单和消息通知。",
+      "loading": "加载中...",
+      "linked": "已关联",
+      "unlink": "解除关联",
+      "unlinkConfirm": "确定要解除关联 Telegram 账号吗？",
+      "unlinkError": "解除关联失败",
+      "generateError": "生成链接失败",
+      "brandLogo": "ZHAN FINANCE",
+      "scanWithPhone": "使用手机摄像头扫描",
+      "twoWaysBadge": "两种连接方式",
+      "connectionTitle": "连接 Telegram 通知",
+      "step1": "<strong>手机端:</strong> 用手机摄像头扫描二维码并在 Telegram 中打开链接。",
+      "step2": "<strong>电脑端:</strong> 点击下方的“在 Telegram 中打开”按钮。",
+      "step3": "在打开的机器人对话中点击 <strong>开始 (Start)</strong>，账号将立即关联。",
+      "openInTelegram": "在 Telegram 中打开",
+      "refreshQr": "刷新二维码",
+      "qrValidityHint": "二维码和链接在 15 分钟内有效。在机器人中点击 Start 后，状态将自动更新。",
+      "connectTelegram": "连接 Telegram"
+    }
   },
   "adminDashboard": {
     "title": "总览大盘",
@@ -2020,7 +2051,13 @@
       "loadError": "加载付款凭证失败",
       "confirmSuccess": "凭证已确认，订阅已激活30天",
       "confirmError": "确认凭证失败",
-      "rejectedSuccess": "凭证已驳回"
+      "rejectedSuccess": "凭证已驳回",
+      "stats": {
+        "total": "收据总数",
+        "awaiting": "等待审核",
+        "rejected": "已拒绝",
+        "confirmed": "已确认"
+      }
     }
   }
 }

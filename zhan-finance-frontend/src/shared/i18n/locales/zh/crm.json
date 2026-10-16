@@ -141,5 +141,21 @@
     "addLabel": "添加标签...",
     "applying": "应用中...",
     "apply": "应用"
+  },
+  "labels": {
+    "title": "标签:",
+    "all": "全部",
+    "addLabel": "标签",
+    "addLabelTitle": "添加自定义标签 (最多 5 个)",
+    "newLabel": "新标签 (最多 5 个)",
+    "nameEmpty": "标签名称不能为空",
+    "createError": "创建标签失败 (最多 5 个)",
+    "labelName": "标签名称",
+    "placeholder": "例如: 紧急, 报告...",
+    "labelColor": "标签颜色",
+    "cancel": "取消",
+    "create": "创建",
+    "savedLabels": "您保存的标签:",
+    "deleteLabel": "删除标签"
   }
 }

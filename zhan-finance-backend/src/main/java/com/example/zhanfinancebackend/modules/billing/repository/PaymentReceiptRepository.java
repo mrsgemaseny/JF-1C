@@ -39,4 +39,8 @@ public interface PaymentReceiptRepository extends JpaRepository<PaymentReceipt, 
 
     @Query("SELECT COUNT(r) > 0 FROM PaymentReceipt r WHERE r.client.id = :clientId AND r.status = :status")
     boolean existsByClientIdAndStatus(@Param("clientId") Long clientId, @Param("status") PaymentReceiptStatus status);
+
+    @Query("SELECT r FROM PaymentReceipt r JOIN FETCH r.client c LEFT JOIN FETCH r.subscription s LEFT JOIN FETCH r.invoice i LEFT JOIN FETCH r.reviewedBy rev WHERE r.receiptFileKey = :fileKey")
+    Optional<PaymentReceipt> findByReceiptFileKey(@Param("fileKey") String fileKey);
 }
+

@@ -170,8 +170,8 @@ public class PaymentReceiptService {
         accessService.assertCanReview(admin);
 
         PaymentReceipt receipt = paymentReceiptRepository.findByIdForUpdate(receiptId)
-                .or(() -> paymentReceiptRepository.findById(receiptId))
                 .orElseThrow(() -> new ResourceNotFoundException("Payment receipt not found: " + receiptId));
+
 
         if (receipt.getStatus() != PaymentReceiptStatus.AWAITING_REVIEW) {
             throw new ConflictException("Receipt has already been reviewed with status: " + receipt.getStatus());
@@ -234,8 +234,8 @@ public class PaymentReceiptService {
         accessService.assertCanReview(admin);
 
         PaymentReceipt receipt = paymentReceiptRepository.findByIdForUpdate(receiptId)
-                .or(() -> paymentReceiptRepository.findById(receiptId))
                 .orElseThrow(() -> new ResourceNotFoundException("Payment receipt not found: " + receiptId));
+
 
         if (receipt.getStatus() != PaymentReceiptStatus.AWAITING_REVIEW) {
             throw new ConflictException("Receipt has already been reviewed with status: " + receipt.getStatus());
@@ -298,12 +298,18 @@ public class PaymentReceiptService {
     }
 
     @Transactional(readOnly = true)
-    public byte[] loadReceiptFileByKey(String fileKey) {
+    public byte[] loadReceiptFileByKey(User actor, String fileKey) {
         if (fileKey == null || fileKey.isBlank()) {
             throw new BadRequestException("File key is required");
         }
-        return storageService.loadReceipt(fileKey);
+        PaymentReceipt receipt = paymentReceiptRepository.findByReceiptFileKey(fileKey)
+                .orElseThrow(() -> new ResourceNotFoundException("Payment receipt not found for key: " + fileKey));
+
+        accessService.assertCanRead(actor, receipt);
+
+        return storageService.loadReceipt(receipt.getReceiptFileKey());
     }
+
 
     public PaymentRequisitesDto getRequisites() {
         return new PaymentRequisitesDto(recipientName, bin, iban, kbe, bankName);

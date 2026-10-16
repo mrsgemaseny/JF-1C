@@ -65,7 +65,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 if (role != null && uid != null) {
                     boolean enabled = userRepository.findById(uid)
-                            .map(com.example.zhanfinancebackend.modules.auth.entity.User::isEnabled)
+                            .map(u -> u.isEnabled() && !u.isDeleted())
                             .orElse(true);
 
                     if (!enabled) {
@@ -73,6 +73,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         filterChain.doFilter(request, response);
                         return;
                     }
+
 
                     com.example.zhanfinancebackend.modules.auth.entity.User stubUser = new com.example.zhanfinancebackend.modules.auth.entity.User();
                     stubUser.setId(uid);

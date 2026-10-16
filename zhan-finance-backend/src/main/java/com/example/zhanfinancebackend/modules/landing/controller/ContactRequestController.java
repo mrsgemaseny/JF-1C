@@ -48,13 +48,14 @@ public class ContactRequestController {
     }
 
     @PatchMapping("/{id}/status")
-    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE', 'ADVISOR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     public ApiResponse<ContactRequestDto> updateStatus(
             @PathVariable Long id,
             @RequestParam ContactRequestStatus status
     ) {
         return ApiResponse.success(contactRequestService.updateStatus(id, status));
     }
+
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")

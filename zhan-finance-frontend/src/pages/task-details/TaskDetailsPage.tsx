@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Loader2 } from 'lucide-react';
-import { TaskDetailsModal } from '@/entities/task/ui/TaskDetailsModal';
+import { TaskDetailsModal } from '@/widgets/task-details-modal/ui/TaskDetailsModal';
 import { useTaskQuery } from '@/entities/task/api/taskQueries';
 import { useAuth } from '@/features/auth/AuthContext';
 import type { TaskDto } from '@/entities/task/model/types';

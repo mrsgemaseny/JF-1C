@@ -44,12 +44,18 @@ export function AdminPaymentReceiptsPage() {
 
     try {
       const statusParam = (!statusFilter || statusFilter === 'ALL') ? undefined : statusFilter;
-      const [filteredData, allData] = await Promise.all([
-        paymentReceiptApi.getAllReceipts(statusParam),
-        paymentReceiptApi.getAllReceipts(),
-      ]);
-      setReceipts(filteredData || []);
-      setAllReceiptsForStats(allData || []);
+      if (!statusParam) {
+        const allData = await paymentReceiptApi.getAllReceipts();
+        setReceipts(allData || []);
+        setAllReceiptsForStats(allData || []);
+      } else {
+        const [filteredData, allData] = await Promise.all([
+          paymentReceiptApi.getAllReceipts(statusParam),
+          paymentReceiptApi.getAllReceipts(),
+        ]);
+        setReceipts(filteredData || []);
+        setAllReceiptsForStats(allData || []);
+      }
     } catch (err) {
       console.error(err);
       toast.error(t('billing.admin.loadError', { defaultValue: 'Не удалось загрузить чеки оплат' }));
@@ -215,7 +221,7 @@ export function AdminPaymentReceiptsPage() {
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-              Всего чеков
+              {t('billing.admin.stats.total', { defaultValue: 'Всего чеков' })}
             </span>
             <div className="w-8 h-8 rounded-lg bg-gray-100 text-gray-700 flex items-center justify-center border border-gray-200">
               <FileCheck className="w-4 h-4" />
@@ -237,7 +243,7 @@ export function AdminPaymentReceiptsPage() {
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-              Ожидают проверки
+              {t('billing.admin.stats.awaiting', { defaultValue: 'Ожидают проверки' })}
             </span>
             <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100">
               <Clock className="w-4 h-4" />
@@ -259,7 +265,7 @@ export function AdminPaymentReceiptsPage() {
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-              Отклонено
+              {t('billing.admin.stats.rejected', { defaultValue: 'Отклонено' })}
             </span>
             <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100">
               <XCircle className="w-4 h-4" />
@@ -281,7 +287,7 @@ export function AdminPaymentReceiptsPage() {
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-              Подтверждено
+              {t('billing.admin.stats.confirmed', { defaultValue: 'Подтверждено' })}
             </span>
             <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100">
               <CheckCircle2 className="w-4 h-4" />

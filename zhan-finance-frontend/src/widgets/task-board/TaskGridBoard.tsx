@@ -5,10 +5,11 @@ import { TaskSaveButton } from '@/features/task/ui/TaskSaveButton';
 import { Filter, ArrowUpDown, X } from 'lucide-react';
 import { getEmployees } from '@/entities/employee/api/employeeApi';
 import { deleteTask, getTask } from '@/entities/task/api/taskApi';
-import { TaskDetailsModal } from '@/entities/task/ui/TaskDetailsModal';
+import { TaskDetailsModal } from '@/widgets/task-details-modal/ui/TaskDetailsModal';
 import type { EmployeeDto } from '@/entities/employee/model/types';
 import { useApiData } from '@/shared/hooks/useApiData';
 import { useTranslation } from 'react-i18next';
+import type { UserRole } from '@/features/auth/authApi';
 
 import { labelsApi } from '@/features/labels/api/labelsApi';
 import { usePipelinesQuery } from '@/entities/pipeline/api/pipelineQueries';
@@ -18,7 +19,7 @@ import type { UserLabelDto } from '@/entities/task/model/types';
 interface TaskGridBoardProps {
   initialTasks: TaskDto[];
   onBatchSave: (tasks: TaskDto[]) => Promise<void>;
-  userRole: 'ADMIN' | 'EMPLOYEE' | 'CLIENT' | 'LEARNER';
+  userRole: UserRole;
   compact?: boolean;
   maxRows?: number;
   gridColsClass?: string;

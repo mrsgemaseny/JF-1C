@@ -42,6 +42,11 @@ export function RegisterPage({ isEmployeeRoute = false }: RegisterPageProps) {
   const [emailOtpToken, setEmailOtpToken] = useState<string | null>(null);
   const [devOtpCode, setDevOtpCode] = useState<string | null>(null);
 
+  const getSafeReturnUrl = () => {
+    const from = searchParams.get('from');
+    return from && from.startsWith('/') && !from.startsWith('//') ? from : ROUTES.PROFILE;
+  };
+
   const handleOtpSuccess = (res: AuthResponse) => {
     completeAuth(res);
     if (res.isPendingApproval) {
@@ -51,8 +56,7 @@ export function RegisterPage({ isEmployeeRoute = false }: RegisterPageProps) {
       navigate(ROUTES.COMPLETE_PROFILE);
     } else {
       toast.success(t('register.loginSuccess'));
-      const returnUrl = searchParams.get('from') || ROUTES.PROFILE;
-      navigate(returnUrl, { replace: true });
+      navigate(getSafeReturnUrl(), { replace: true });
     }
   };
 
@@ -66,7 +70,7 @@ export function RegisterPage({ isEmployeeRoute = false }: RegisterPageProps) {
         const result = await loginWithGoogle(credentialResponse.credential, role);
         if (result.requires2FA && result.preAuthToken) {
           toast.info(t('login.totpRequired'));
-          navigate(ROUTES.LOGIN, { state: { preAuthToken: result.preAuthToken } });
+          navigate(ROUTES.LOGIN, { state: { preAuthToken: result.preAuthToken, requires2FASetup: result.requires2FASetup } });
           return;
         }
         if (result.isPendingApproval) {
@@ -76,8 +80,7 @@ export function RegisterPage({ isEmployeeRoute = false }: RegisterPageProps) {
           navigate(ROUTES.COMPLETE_PROFILE);
         } else {
           toast.success(t('register.loginSuccess'));
-          const returnUrl = searchParams.get('from') || ROUTES.PROFILE;
-          navigate(returnUrl, { replace: true });
+          navigate(getSafeReturnUrl(), { replace: true });
         }
       }
     } catch (err) {
@@ -193,7 +196,7 @@ export function RegisterPage({ isEmployeeRoute = false }: RegisterPageProps) {
             preAuthToken={emailOtpToken}
             email={email.trim()}
             devOtpCode={devOtpCode || undefined}
-            submitButtonText="Подтвердить и завершить регистрацию"
+            submitButtonText={t('register.confirmAndFinish', { defaultValue: 'Подтвердить и завершить регистрацию' })}
             onSuccess={handleOtpSuccess}
             onGoogleSuccess={handleGoogleSuccess}
             onBack={() => {
@@ -240,8 +243,8 @@ export function RegisterPage({ isEmployeeRoute = false }: RegisterPageProps) {
 
             {email.trim().toLowerCase().endsWith('@gmail.com') && (
               <div className="mb-4 p-3.5 bg-amber-500/10 border border-amber-500/30 rounded-2xl text-amber-900 text-xs sm:text-sm leading-relaxed">
-                <strong className="block font-bold text-amber-950 mb-0.5">Похоже, вы используете Google-аккаунт</strong>
-                Для безопасности потребуется подтвердить владение почтой (код на Gmail), либо завершить регистрацию в 1 клик через Google.
+                <strong className="block font-bold text-amber-950 mb-0.5">{t('register.gmailNoticeTitle', { defaultValue: 'Похоже, вы используете Google-аккаунт' })}</strong>
+                {t('register.gmailNoticeText', { defaultValue: 'Для безопасности потребуется подтвердить владение почтой (код на Gmail), либо завершить регистрацию в 1 клик через Google.' })}
               </div>
             )}
 
@@ -333,7 +336,7 @@ export function RegisterPage({ isEmployeeRoute = false }: RegisterPageProps) {
               {isSubmitting
                 ? t('register.registering')
                 : email.trim().toLowerCase().endsWith('@gmail.com')
-                ? 'Зарегистрироваться (подтвердить почту)'
+                ? t('register.registerWithEmailConfirm', { defaultValue: 'Зарегистрироваться (подтвердить почту)' })
                 : t('register.registerBtn')}
               {!isSubmitting && <ArrowRight className="w-4 h-4" />}
             </button>

@@ -148,7 +148,9 @@ public class DashboardService {
     }
 
     @Transactional(readOnly = true)
+    @org.springframework.cache.annotation.Cacheable(value = "dashboard_employee", key = "#employee.id")
     public EmployeeDashboardDto getEmployeeDashboard(User employee) {
+
         long clientsCount = userRepository.countByAssignedEmployee(employee);
 
         long tasksCount = taskRepository.countTasksForEmployee(employee);

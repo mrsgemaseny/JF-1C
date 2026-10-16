@@ -14,6 +14,12 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long
 
     Optional<RefreshToken> findByToken(String token);
 
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT rt FROM RefreshToken rt WHERE rt.token = :token")
+    Optional<RefreshToken> findByTokenForUpdate(@Param("token") String token);
+
+
+
     @Query("SELECT rt FROM RefreshToken rt WHERE rt.familyId = :familyId AND rt.isRevoked = false ORDER BY rt.createdAt DESC")
     java.util.List<RefreshToken> findActiveByFamilyId(@Param("familyId") String familyId);
 

@@ -7,6 +7,7 @@ import lombok.Data;
 public class LessonDto {
     private Long id;
     private Long chapterId;
+    private Long courseId;
     private String title;
     private String description;
     private LessonType type;

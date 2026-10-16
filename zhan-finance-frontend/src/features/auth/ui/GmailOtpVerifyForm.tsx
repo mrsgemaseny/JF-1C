@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useTranslation, Trans } from 'react-i18next';
 import { confirmEmailOtp, resendEmailOtp, AuthResponse } from '@/features/auth/authApi';
 import { Mail, ArrowLeft, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 import { GoogleLogin } from '@react-oauth/google';
@@ -85,7 +85,7 @@ export function GmailOtpVerifyForm({
       const response = await confirmEmailOtp(preAuthToken, codeToSubmit);
       onSuccess(response);
     } catch (err: any) {
-      setError(err?.message || 'Неверный проверочный код. Проверьте почту и повторите ввод.');
+      setError(err?.message || t('otp.invalidCode', { defaultValue: 'Неверный проверочный код. Проверьте почту и повторите ввод.' }));
       setCode(Array(6).fill(''));
       inputRefs.current[0]?.focus();
     } finally {
@@ -101,7 +101,7 @@ export function GmailOtpVerifyForm({
       await resendEmailOtp(preAuthToken);
       setCooldown(60);
     } catch (err: any) {
-      setError(err?.message || 'Не удалось отправить код повторно.');
+      setError(err?.message || t('otp.resendError', { defaultValue: 'Не удалось отправить код повторно.' }));
     } finally {
       setIsResending(false);
     }
@@ -120,17 +120,23 @@ export function GmailOtpVerifyForm({
           <Mail size={28} />
         </div>
         <h2 className="text-2xl font-bold text-gray-900 tracking-tight">
-          Подтверждение Gmail
+          {t('otp.title', { defaultValue: 'Подтверждение Gmail' })}
         </h2>
         <p className="text-sm text-gray-600 mt-2 max-w-sm mx-auto leading-relaxed">
-          На адрес <strong className="text-gray-900">{email}</strong> отправлен 6-значный код подтверждения.
+          <Trans
+            i18nKey="otp.subtitle"
+            ns="auth"
+            values={{ email }}
+            components={{ strong: <strong className="text-gray-900" /> }}
+            defaults="На адрес <strong class='text-gray-900'>{{email}}</strong> отправлен 6-значный код подтверждения."
+          />
         </p>
       </div>
 
       {devOtpCode && (
         <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between text-amber-900 text-xs shadow-sm">
           <div>
-            <span className="font-bold">Тестовый режим (SMTP не настроен):</span> Ваш проверочный код:{' '}
+            <span className="font-bold">{t('otp.devMode', { defaultValue: 'Тестовый режим (SMTP не настроен):' })}</span> {t('otp.devCode', { defaultValue: 'Ваш проверочный код:' })}{' '}
             <code className="font-mono font-bold text-sm bg-white px-2 py-0.5 rounded border border-amber-300 text-brand-green">
               {devOtpCode}
             </code>
@@ -145,7 +151,7 @@ export function GmailOtpVerifyForm({
             }}
             className="text-brand-green hover:underline font-bold ml-2 shrink-0 cursor-pointer"
           >
-            Вставить код
+            {t('otp.pasteCode', { defaultValue: 'Вставить код' })}
           </button>
         </div>
       )}
@@ -185,15 +191,15 @@ export function GmailOtpVerifyForm({
           {isSubmitting ? (
             <>
               <Loader2 className="w-5 h-5 animate-spin" />
-              <span>Проверка кода...</span>
+              <span>{t('otp.verifying', { defaultValue: 'Проверка кода...' })}</span>
             </>
           ) : (
-            submitButtonText || 'Подтвердить и завершить регистрацию'
+            submitButtonText || t('otp.confirmAndRegister', { defaultValue: 'Подтвердить и завершить регистрацию' })
           )}
         </button>
 
         <div className="flex items-center justify-between text-xs text-gray-500 px-1 pt-1">
-          <span>Не пришел код?</span>
+          <span>{t('otp.didNotReceive', { defaultValue: 'Не пришел код?' })}</span>
           <button
             type="button"
             onClick={handleResend}
@@ -201,14 +207,14 @@ export function GmailOtpVerifyForm({
             className="text-brand-green hover:underline font-semibold flex items-center gap-1 disabled:opacity-50 disabled:no-underline"
           >
             {isResending ? <RefreshCw className="w-3 h-3 animate-spin" /> : null}
-            {cooldown > 0 ? `Отправить повторно (${cooldown} сек)` : 'Отправить код повторно'}
+            {cooldown > 0 ? t('otp.resendCooldown', { count: cooldown, defaultValue: `Отправить повторно (${cooldown} сек)` }) : t('otp.resend', { defaultValue: 'Отправить код повторно' })}
           </button>
         </div>
 
         <div className="relative flex py-2 items-center">
           <div className="flex-grow border-t border-gray-200"></div>
           <span className="flex-shrink mx-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-            или быстрый вход
+            {t('otp.orQuickLogin', { defaultValue: 'или быстрый вход' })}
           </span>
           <div className="flex-grow border-t border-gray-200"></div>
         </div>
@@ -216,7 +222,7 @@ export function GmailOtpVerifyForm({
         <div className="flex justify-center w-full">
           <GoogleLogin
             onSuccess={onGoogleSuccess}
-            onError={() => setError('Ошибка входа через Google')}
+            onError={() => setError(t('otp.googleAuthError', { defaultValue: 'Ошибка входа через Google' }))}
             text="continue_with"
             useOneTap={false}
           />
@@ -229,7 +235,7 @@ export function GmailOtpVerifyForm({
           className="w-full py-2.5 text-sm font-semibold text-gray-500 hover:text-gray-800 transition-colors flex items-center justify-center gap-1.5"
         >
           <ArrowLeft size={16} />
-          Назад к форме ввода
+          {t('otp.backToForm', { defaultValue: 'Назад к форме ввода' })}
         </button>
       </div>
     </div>

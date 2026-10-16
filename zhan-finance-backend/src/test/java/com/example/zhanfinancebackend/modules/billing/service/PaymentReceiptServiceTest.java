@@ -214,7 +214,7 @@ class PaymentReceiptServiceTest {
         );
         receipt.setId(500L);
 
-        when(paymentReceiptRepository.findById(500L)).thenReturn(Optional.of(receipt));
+        when(paymentReceiptRepository.findByIdForUpdate(500L)).thenReturn(Optional.of(receipt));
         when(paymentReceiptRepository.save(any(PaymentReceipt.class))).thenReturn(receipt);
 
         PaymentReceiptDto result = paymentReceiptService.confirmReceipt(admin, 500L);
@@ -237,7 +237,7 @@ class PaymentReceiptServiceTest {
         receipt.setId(500L);
         receipt.setStatus(PaymentReceiptStatus.CONFIRMED);
 
-        when(paymentReceiptRepository.findById(500L)).thenReturn(Optional.of(receipt));
+        when(paymentReceiptRepository.findByIdForUpdate(500L)).thenReturn(Optional.of(receipt));
 
         assertThatThrownBy(() -> paymentReceiptService.confirmReceipt(admin, 500L))
                 .isInstanceOf(ConflictException.class);
@@ -251,7 +251,7 @@ class PaymentReceiptServiceTest {
         );
         receipt.setId(500L);
 
-        when(paymentReceiptRepository.findById(500L)).thenReturn(Optional.of(receipt));
+        when(paymentReceiptRepository.findByIdForUpdate(500L)).thenReturn(Optional.of(receipt));
         when(paymentReceiptRepository.save(any(PaymentReceipt.class))).thenReturn(receipt);
 
         PaymentReceiptDto result = paymentReceiptService.rejectReceipt(admin, 500L, "Сумма в чеке не совпадает с тарифом");
@@ -272,7 +272,7 @@ class PaymentReceiptServiceTest {
         );
         receipt.setId(500L);
 
-        when(paymentReceiptRepository.findById(500L)).thenReturn(Optional.of(receipt));
+        when(paymentReceiptRepository.findByIdForUpdate(500L)).thenReturn(Optional.of(receipt));
 
         assertThatThrownBy(() -> paymentReceiptService.rejectReceipt(admin, 500L, "   "))
                 .isInstanceOf(BadRequestException.class);
@@ -309,7 +309,7 @@ class PaymentReceiptServiceTest {
         );
         receipt.setId(501L);
 
-        when(paymentReceiptRepository.findById(501L)).thenReturn(Optional.of(receipt));
+        when(paymentReceiptRepository.findByIdForUpdate(501L)).thenReturn(Optional.of(receipt));
         when(paymentReceiptRepository.save(any(PaymentReceipt.class))).thenReturn(receipt);
 
         paymentReceiptService.confirmReceipt(admin, 501L);
@@ -326,7 +326,7 @@ class PaymentReceiptServiceTest {
         );
         receipt.setId(502L);
 
-        when(paymentReceiptRepository.findById(502L)).thenReturn(Optional.of(receipt));
+        when(paymentReceiptRepository.findByIdForUpdate(502L)).thenReturn(Optional.of(receipt));
         when(paymentReceiptRepository.save(any(PaymentReceipt.class))).thenReturn(receipt);
         when(subscriptionRepository.findAllByUser(client)).thenReturn(List.of());
         when(subscriptionRepository.save(any(Subscription.class))).thenAnswer(inv -> {
@@ -402,7 +402,7 @@ class PaymentReceiptServiceTest {
         );
         receipt.setId(500L);
 
-        when(paymentReceiptRepository.findById(500L)).thenReturn(Optional.of(receipt));
+        when(paymentReceiptRepository.findByIdForUpdate(500L)).thenReturn(Optional.of(receipt));
         when(paymentReceiptRepository.save(any(PaymentReceipt.class))).thenReturn(receipt);
 
         serviceWithoutNotification.confirmReceipt(admin, 500L);
@@ -428,11 +428,28 @@ class PaymentReceiptServiceTest {
         );
         receipt.setId(500L);
 
-        when(paymentReceiptRepository.findById(500L)).thenReturn(Optional.of(receipt));
+        when(paymentReceiptRepository.findByIdForUpdate(500L)).thenReturn(Optional.of(receipt));
         when(paymentReceiptRepository.save(any(PaymentReceipt.class))).thenReturn(receipt);
 
         serviceWithoutNotification.rejectReceipt(admin, 500L, "Неверная сумма");
 
         verify(telegramOutboxService).enqueue(eq(client), anyString(), anyString(), eq("/client/billing"));
+    }
+
+    @Test
+    @DisplayName("Load receipt file by key: success checks access and returns bytes")
+    void loadReceiptFileByKey_success() {
+        PaymentReceipt receipt = new PaymentReceipt(
+                client, subscription, invoice, BigDecimal.valueOf(50000), "KZT", "receipts/test.pdf"
+        );
+        receipt.setId(500L);
+
+        when(paymentReceiptRepository.findByReceiptFileKey("receipts/test.pdf")).thenReturn(Optional.of(receipt));
+        when(storageService.loadReceipt("receipts/test.pdf")).thenReturn("PDF_BYTES".getBytes());
+
+        byte[] result = paymentReceiptService.loadReceiptFileByKey(client, "receipts/test.pdf");
+
+        assertThat(result).isEqualTo("PDF_BYTES".getBytes());
+        verify(accessService).assertCanRead(client, receipt);
     }
 }

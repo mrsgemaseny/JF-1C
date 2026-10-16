@@ -52,12 +52,14 @@ public class RefreshTokenService {
      */
     @Transactional
     public RefreshToken rotate(String rawToken) {
-        RefreshToken token = refreshTokenRepository.findByToken(rawToken)
+        RefreshToken token = refreshTokenRepository.findByTokenForUpdate(rawToken)
+                .or(() -> refreshTokenRepository.findByToken(rawToken))
                 .orElseThrow(() -> {
                     log.warn("Refresh token not found: {}",
                             rawToken != null && rawToken.length() > 8 ? rawToken.substring(0, 8) + "..." : rawToken);
                     return new UnauthorizedException("Invalid refresh token");
                 });
+
 
         if (token.isRevoked()) {
             // Grace Period per RFC 6819 Section 5.2.2.3: allow a 15-second window for concurrent requests from multiple tabs

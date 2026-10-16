@@ -8,7 +8,8 @@ dockerfile = "Dockerfile"
   SERVER_ADDRESS = "0.0.0.0"
   SERVER_PORT = "8080"
   SPRING_PROFILES_ACTIVE = "prod"
-  JAVA_TOOL_OPTIONS = "-XX:MaxMetaspaceSize=256m"
+  JAVA_TOOL_OPTIONS = "-XX:MaxMetaspaceSize=256m -XX:MetaspaceSize=96m -Xmx384m -Xms256m"
+
 
 [http_service]
 internal_port = 8080

@@ -121,7 +121,7 @@ class BillingInvariantTest {
         ReflectionTestUtils.setField(confirmedReceipt, "id", 300L);
         confirmedReceipt.setStatus(PaymentReceiptStatus.CONFIRMED);
 
-        when(paymentReceiptRepository.findById(300L)).thenReturn(Optional.of(confirmedReceipt));
+        when(paymentReceiptRepository.findByIdForUpdate(300L)).thenReturn(Optional.of(confirmedReceipt));
 
         assertThatThrownBy(() -> paymentReceiptService.confirmReceipt(admin, 300L))
                 .isInstanceOf(ConflictException.class);
@@ -136,7 +136,7 @@ class BillingInvariantTest {
         ReflectionTestUtils.setField(confirmedReceipt, "id", 300L);
         confirmedReceipt.setStatus(PaymentReceiptStatus.CONFIRMED);
 
-        when(paymentReceiptRepository.findById(300L)).thenReturn(Optional.of(confirmedReceipt));
+        when(paymentReceiptRepository.findByIdForUpdate(300L)).thenReturn(Optional.of(confirmedReceipt));
 
         assertThatThrownBy(() -> paymentReceiptService.rejectReceipt(admin, 300L, "Mistake"))
                 .isInstanceOf(ConflictException.class);

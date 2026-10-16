@@ -223,7 +223,10 @@ public class DocumentService {
 
     @Transactional
     public DocumentDto updateDocumentStatus(Long documentId, String status, User actor) {
-        Document document = getDocumentWithAccessCheck(documentId, actor);
+        Document document = documentRepository.findById(documentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
+
+        documentAccessService.assertCanWrite(actor, document);
         document.setStatus(status);
         document = documentRepository.save(document);
 
@@ -273,9 +276,12 @@ public class DocumentService {
         Document document = documentRepository.findById(documentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
 
-        documentAccessService.assertCanRead(actor, document);
+        if (actor.getRole() != Role.ADMIN && (document.getUser() == null || !document.getUser().getId().equals(actor.getId()))) {
+            throw new org.springframework.security.access.AccessDeniedException("Only the document owner or an administrator can confirm this document.");
+        }
 
         document.setStatus("CONFIRMED");
+
         document.setConfirmedAt(java.time.LocalDateTime.now());
         document.setConfirmedIp(clientIp != null ? clientIp : "127.0.0.1");
 

@@ -372,7 +372,38 @@
     "saving": "Сохранение...",
     "googleNoPassword": "Вы вошли через Google, поэтому смена пароля здесь недоступна. Управляйте безопасностью в аккаунте Google.",
     "language": "Язык интерфейса",
-    "languageDesc": "Выберите предпочтительный язык для работы в системе"
+    "languageDesc": "Выберите предпочтительный язык для работы в системе",
+    "google": {
+      "title": "Google Аккаунт",
+      "description": "Привяжите ваш аккаунт Google для быстрого и безопасного входа в систему в один клик.",
+      "linked": "Google привязан",
+      "notLinked": "Google не привязан",
+      "notLinkedDesc": "Вход доступен по логину и паролю",
+      "linkSuccess": "Google-аккаунт успешно привязан!",
+      "linkError": "Ошибка привязки Google-аккаунта",
+      "gisError": "Ошибка Google Identity Services"
+    },
+    "telegram": {
+      "title": "Telegram",
+      "description": "Привяжите Telegram-аккаунт, чтобы получать уведомления о задачах, счетах и сообщениях прямо в бот.",
+      "loading": "Загрузка...",
+      "linked": "Привязан",
+      "unlink": "Отвязать",
+      "unlinkConfirm": "Отвязать Telegram-аккаунт?",
+      "unlinkError": "Ошибка отвязки",
+      "generateError": "Ошибка генерации ссылки",
+      "brandLogo": "ЖАН FINANCE",
+      "scanWithPhone": "Сканируйте камерой телефона",
+      "twoWaysBadge": "Два способа подключения",
+      "connectionTitle": "Подключение Telegram-уведомлений",
+      "step1": "<strong>Со смартфона:</strong> наведите камеру телефона на QR-код и откройте ссылку в Telegram.",
+      "step2": "<strong>С компьютера:</strong> нажмите кнопку «Открыть в Telegram» ниже.",
+      "step3": "В открывшемся диалоге с ботом нажмите <strong>Запустить (Start)</strong>. Аккаунт привяжется мгновенно.",
+      "openInTelegram": "Открыть в Telegram",
+      "refreshQr": "Обновить QR-код",
+      "qrValidityHint": "QR-код и ссылка действительны 15 минут. Статус обновится автоматически сразу после нажатия Start в боте.",
+      "connectTelegram": "Подключить Telegram"
+    }
   },
   "adminDashboard": {
     "title": "Обзор",
@@ -2020,7 +2051,13 @@
       "loadError": "Не удалось загрузить чеки оплат",
       "confirmSuccess": "Чек подтвержден, подписка активирована на 30 дней",
       "confirmError": "Ошибка при подтверждении чека",
-      "rejectedSuccess": "Чек отклонен"
+      "rejectedSuccess": "Чек отклонен",
+      "stats": {
+        "total": "Всего чеков",
+        "awaiting": "Ожидают проверки",
+        "rejected": "Отклонено",
+        "confirmed": "Подтверждено"
+      }
     }
   }
 }

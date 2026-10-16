@@ -6,6 +6,7 @@ import { twMerge } from 'tailwind-merge';
 import { uploadDocument } from '@/entities/document/api/documentApi';
 
 import type { EmployeeDto } from '@/entities/employee/model/types';
+import type { UserRole } from '@/features/auth/authApi';
 import { useTranslation } from 'react-i18next';
 import { DatePicker } from '@/shared/ui/DatePicker';
 import { toast } from '@/shared/ui/Toast/ToastContext';
@@ -16,7 +17,7 @@ interface TaskCardProps {
   className?: string;
   onUpdateTask: (updatedTask: TaskDto) => void;
   onDeleteTask?: (taskId: number) => void;
-  userRole: 'ADMIN' | 'EMPLOYEE' | 'CLIENT' | 'LEARNER';
+  userRole: UserRole;
   employees?: EmployeeDto[] | null;
 }
 

@@ -61,6 +61,7 @@ public class TelegramOutboxService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void enqueue(Long userId, String customHtmlMessage) {
+
         if (userId == null || customHtmlMessage == null || customHtmlMessage.isBlank()) {
             return;
         }

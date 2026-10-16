@@ -19,6 +19,7 @@ public class Subtask extends BaseEntity {
     private SubtaskStatus status = SubtaskStatus.NEW;
 
     protected Subtask() {
+
     }
 
     public Subtask(Task task, String title) {

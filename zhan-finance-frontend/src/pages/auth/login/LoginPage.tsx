@@ -7,6 +7,7 @@ import { useAuth } from '@/features/auth/AuthContext';
 import { AuthResponse } from '@/features/auth/authApi';
 import { TotpVerifyForm } from '@/features/auth/ui/TotpVerifyForm';
 import { TotpSetupForm } from '@/features/auth/ui/TotpSetupForm';
+import { GmailOtpVerifyForm } from '@/features/auth/ui/GmailOtpVerifyForm';
 import { GoogleLogin } from '@react-oauth/google';
 import { Input } from '@/shared/ui/Input/Input';
 import { toast } from '@/shared/ui/Toast/ToastContext';
@@ -23,27 +24,32 @@ export function LoginPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const location = useLocation();
-  const state = location.state as { preAuthToken?: string } | null;
+  const state = location.state as { preAuthToken?: string; requires2FASetup?: boolean } | null;
 
-  const [step, setStep] = useState<'CREDENTIALS' | 'TOTP' | 'TOTP_SETUP'>('CREDENTIALS');
+  const [step, setStep] = useState<'CREDENTIALS' | 'TOTP' | 'TOTP_SETUP' | 'EMAIL_OTP'>('CREDENTIALS');
   const [preAuthToken, setPreAuthToken] = useState<string>('');
+  const [devOtpCode, setDevOtpCode] = useState<string | null>(null);
 
   useEffect(() => {
     if (state?.preAuthToken) {
       setPreAuthToken(state.preAuthToken);
-      setStep('TOTP');
+      setStep(state.requires2FASetup ? 'TOTP_SETUP' : 'TOTP');
     }
   }, [state]);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [selectedRole, setSelectedRole] = useState<string>('CLIENT');
   const [globalError, setGlobalError] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const submittingRef = useRef(false);
 
   const [pendingMessage, setPendingMessage] = useState<string | null>(null);
+
+  const getSafeReturnUrl = () => {
+    const from = searchParams.get('from');
+    return from && from.startsWith('/') && !from.startsWith('//') ? from : ROUTES.PROFILE;
+  };
 
   const handleGoogleSuccess = async (credentialResponse: any) => {
     if (!credentialResponse.credential || isSubmitting || submittingRef.current) return;
@@ -54,7 +60,7 @@ export function LoginPage() {
       const result = await loginWithGoogle(credentialResponse.credential);
       if (result?.requires2FA && result.preAuthToken) {
         setPreAuthToken(result.preAuthToken);
-        setStep('TOTP');
+        setStep(result.requires2FASetup ? 'TOTP_SETUP' : 'TOTP');
         return;
       }
       if (result.isPendingApproval) {
@@ -64,8 +70,7 @@ export function LoginPage() {
         navigate(ROUTES.COMPLETE_PROFILE);
       } else {
         toast.success(t('login.loginSuccess'));
-        const returnUrl = searchParams.get('from') || ROUTES.PROFILE;
-        navigate(returnUrl, { replace: true });
+        navigate(getSafeReturnUrl(), { replace: true });
       }
     } catch (err) {
       const msg = err instanceof ApiError ? err.message : 'UNKNOWN';
@@ -84,8 +89,7 @@ export function LoginPage() {
   const handleTotpSuccess = (response: AuthResponse) => {
     completeAuth(response);
     toast.success(t('login.loginSuccess'));
-    const returnUrl = searchParams.get('from') || ROUTES.PROFILE;
-    navigate(returnUrl, { replace: true });
+    navigate(getSafeReturnUrl(), { replace: true });
   };
 
   async function handleSubmit(event: FormEvent) {
@@ -104,14 +108,19 @@ export function LoginPage() {
     setIsSubmitting(true);
     try {
       const res = await login(email.trim(), password);
+      if (res && res.requiresEmailOtp && res.preAuthToken) {
+        setPreAuthToken(res.preAuthToken);
+        setDevOtpCode(res.devOtpCode || null);
+        setStep('EMAIL_OTP');
+        return;
+      }
       if (res && res.requires2FA && res.preAuthToken) {
         setPreAuthToken(res.preAuthToken);
         setStep(res.requires2FASetup ? 'TOTP_SETUP' : 'TOTP');
         return;
       }
       toast.success(t('login.loginSuccess'));
-      const returnUrl = searchParams.get('from') || ROUTES.PROFILE;
-      navigate(returnUrl, { replace: true });
+      navigate(getSafeReturnUrl(), { replace: true });
     } catch (err) {
       const fieldErrors = extractValidationErrors(err);
       if (Object.keys(fieldErrors).length > 0) {
@@ -163,7 +172,20 @@ export function LoginPage() {
           <LanguageSwitcher />
         </div>
 
-        {step === 'TOTP_SETUP' ? (
+        {step === 'EMAIL_OTP' ? (
+          <GmailOtpVerifyForm
+            preAuthToken={preAuthToken}
+            email={email.trim()}
+            devOtpCode={devOtpCode || undefined}
+            onSuccess={handleTotpSuccess}
+            onGoogleSuccess={handleGoogleSuccess}
+            onBack={() => {
+              setStep('CREDENTIALS');
+              setPreAuthToken('');
+              setDevOtpCode(null);
+            }}
+          />
+        ) : step === 'TOTP_SETUP' ? (
           <TotpSetupForm
             preAuthToken={preAuthToken}
             onSuccess={handleTotpSuccess}
@@ -185,33 +207,6 @@ export function LoginPage() {
           <>
             <h1 className="text-2xl sm:text-3xl font-black uppercase text-brand-green mb-2">{t('login.title')}</h1>
             <p className="text-brand-green/70 text-sm mb-5 leading-relaxed">{t('login.subtitle')}</p>
-
-            {/* Role Selector */}
-            <div className="mb-6">
-              <label className="block text-xs font-bold uppercase tracking-wider text-brand-green/70 mb-2">
-                {t('login.selectRole', { defaultValue: 'Выберите роль для входа' })}
-              </label>
-              <div className="grid grid-cols-3 gap-1.5 p-1 bg-brand-green/5 rounded-2xl border border-brand-green/10">
-                {[
-                  { id: 'CLIENT', label: t('login.roles.client', { defaultValue: 'Клиент' }) },
-                  { id: 'EMPLOYEE', label: t('login.roles.employee', { defaultValue: 'Бухгалтер' }) },
-                  { id: 'LEARNER', label: t('login.roles.learner', { defaultValue: 'Обучение' }) },
-                ].map((r) => (
-                  <button
-                    key={r.id}
-                    type="button"
-                    onClick={() => setSelectedRole(r.id)}
-                    className={`py-2 px-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all text-center ${
-                      selectedRole === r.id
-                        ? 'bg-brand-green text-brand-beige shadow-sm'
-                        : 'text-brand-green/70 hover:text-brand-green hover:bg-brand-green/5'
-                    }`}
-                  >
-                    {r.label}
-                  </button>
-                ))}
-              </div>
-            </div>
 
             <form onSubmit={handleSubmit} noValidate className="space-y-4">
               <Input

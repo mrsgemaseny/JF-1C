@@ -102,9 +102,11 @@ export function ChatNotificationProvider({ children }: { children: React.ReactNo
         clearInterval(interval);
         document.removeEventListener('visibilitychange', handleVisibilityChange);
         if (client.connected) {
-          client.deactivate().catch(() => {});
+          void client.deactivate().catch(() => {});
         } else if (isConnecting) {
           pendingDisconnect = true;
+        } else if (client.active) {
+          void client.deactivate().catch(() => {});
         }
       };
     } else {

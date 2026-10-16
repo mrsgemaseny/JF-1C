@@ -81,18 +81,19 @@ public class ContactRequestService {
                     "  </td></tr>" +
                     "</table>",
                     ticketNum,
-                    request.name(),
-                    request.phone(),
-                    request.source() != null ? request.source() : "Сайт"
+                    org.springframework.web.util.HtmlUtils.htmlEscape(request.name()),
+                    org.springframework.web.util.HtmlUtils.htmlEscape(request.phone()),
+                    org.springframework.web.util.HtmlUtils.htmlEscape(request.source() != null ? request.source() : "Сайт")
                 );
 
                 String htmlBody = emailNotificationService.buildFormalEmailHtml(
                     "Ваша заявка принята",
-                    request.name(),
+                    org.springframework.web.util.HtmlUtils.htmlEscape(request.name()),
                     contentHtml,
                     "Перейти на сайт Zhan Finance",
                     emailNotificationService.getFrontendUrl()
                 );
+
 
                 emailNotificationService.sendHtmlEmail(request.email(), subject, htmlBody);
             } catch (Exception e) {

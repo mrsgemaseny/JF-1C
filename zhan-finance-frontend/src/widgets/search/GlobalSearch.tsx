@@ -28,31 +28,40 @@ export function GlobalSearch() {
   }, []);
 
   useEffect(() => {
+    let ignore = false;
     if (debouncedQuery.length >= 2) {
       setIsLoading(true);
       searchGlobal(debouncedQuery)
-        .then(data => setResults(data))
-        .finally(() => setIsLoading(false));
+        .then(data => {
+          if (!ignore) setResults(data);
+        })
+        .finally(() => {
+          if (!ignore) setIsLoading(false);
+        });
     } else {
       setResults(null);
     }
+    return () => {
+      ignore = true;
+    };
   }, [debouncedQuery]);
 
   const handleSelectTask = (id: number) => {
     setIsOpen(false);
-    if (user?.role === 'ADMIN') navigate(`/admin/tasks?taskId=${id}`);
+    if (user?.role === 'ADMIN' || user?.role === 'ADVISOR') navigate(`/admin/tasks?taskId=${id}`);
     else if (user?.role === 'EMPLOYEE') navigate(`/employee/tasks?taskId=${id}`);
   };
 
   const handleSelectCourse = (id: number) => {
     setIsOpen(false);
-    if (user?.role === 'ADMIN') navigate(`/admin/courses/${id}/edit`);
+    if (user?.role === 'ADMIN' || user?.role === 'CURATOR') navigate(`/admin/courses/${id}/edit`);
     else if (user?.role === 'LEARNER') navigate(`/courses/${id}`);
   };
 
-  const handleSelectLesson = (courseId: number, lessonId: number) => {
+  const handleSelectLesson = (courseId: number | undefined, lessonId: number) => {
     setIsOpen(false);
-    if (user?.role === 'ADMIN') navigate(`/admin/courses/${courseId}/lessons/${lessonId}/edit`);
+    if (!courseId) return;
+    if (user?.role === 'ADMIN' || user?.role === 'CURATOR') navigate(`/admin/courses/${courseId}/lessons/${lessonId}/edit`);
     else if (user?.role === 'LEARNER') navigate(`/courses/${courseId}/lessons/${lessonId}`);
   };
 
@@ -128,7 +137,7 @@ export function GlobalSearch() {
                   {results.lessons.map(lesson => (
                     <button
                       key={lesson.id}
-                      onClick={() => handleSelectLesson(lesson.sectionId, lesson.id)}
+                      onClick={() => handleSelectLesson(lesson.courseId || lesson.sectionId, lesson.id)}
                       className="w-full text-left px-4 py-2 hover:bg-gray-50 flex flex-col"
                     >
                       <span className="font-medium text-gray-900 truncate leading-relaxed pb-0.5">{lesson.title}</span>

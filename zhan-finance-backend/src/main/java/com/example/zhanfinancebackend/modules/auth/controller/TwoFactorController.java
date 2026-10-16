@@ -63,14 +63,14 @@ public class TwoFactorController {
     }
 
     @GetMapping("/setup")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<TwoFactorSetupDto> getSetup(@AuthenticationPrincipal UserPrincipal principal) {
         TwoFactorSetupDto setupDto = twoFactorService.generateSetup(principal.getUser());
         return ApiResponse.success(setupDto);
     }
 
     @PostMapping("/setup/confirm")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<Void> confirmSetup(
             @Valid @RequestBody TwoFactorConfirmRequest request,
             @AuthenticationPrincipal UserPrincipal principal
@@ -78,6 +78,7 @@ public class TwoFactorController {
         twoFactorService.confirmSetup(principal.getUser(), request.secret(), request.code());
         return ApiResponse.success(null);
     }
+
 
     @PostMapping("/disable")
     @PreAuthorize("isAuthenticated()")

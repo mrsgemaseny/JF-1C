@@ -43,6 +43,8 @@ public class EmailOtpService {
     @org.springframework.beans.factory.annotation.Value("${spring.mail.username:}")
     private String smtpUsername;
 
+    private final org.springframework.core.env.Environment environment;
+
     public record RegisterOtpResult(String preAuthToken, String devOtpCode) {}
 
     public EmailOtpService(
@@ -50,10 +52,23 @@ public class EmailOtpService {
             EmailNotificationService emailNotificationService,
             ObjectMapper objectMapper
     ) {
+        this(otpRepository, emailNotificationService, objectMapper, null);
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public EmailOtpService(
+            EmailVerificationOtpRepository otpRepository,
+            EmailNotificationService emailNotificationService,
+            ObjectMapper objectMapper,
+            org.springframework.core.env.Environment environment
+    ) {
         this.otpRepository = otpRepository;
         this.emailNotificationService = emailNotificationService;
         this.objectMapper = objectMapper;
+        this.environment = environment;
     }
+
+
 
     @Transactional
     public String createLoginOtp(User user) {
@@ -115,7 +130,8 @@ public class EmailOtpService {
 
         otpRepository.save(otp);
 
-        boolean isDevOtp = smtpUsername == null || smtpUsername.isBlank() || "smtp.example.com".equalsIgnoreCase(smtpHost);
+        boolean isProd = environment != null && java.util.Arrays.asList(environment.getActiveProfiles()).contains("prod");
+        boolean isDevOtp = !isProd && (smtpUsername == null || smtpUsername.isBlank() || "smtp.example.com".equalsIgnoreCase(smtpHost));
         if (isDevOtp) {
             log.warn("=================================================================");
             log.warn(">>> [DEV EMAIL OTP] Email: {} | Code: {} <<<", request.email(), otpCode);
@@ -127,6 +143,7 @@ public class EmailOtpService {
         log.info("Issued Gmail register OTP for email {}", request.email());
 
         return new RegisterOtpResult(preAuthToken, isDevOtp ? otpCode : null);
+
     }
 
     @Transactional

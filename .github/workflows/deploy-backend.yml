@@ -36,7 +36,8 @@ jobs:
 
       - name: Build and Test
         working-directory: ./zhan-finance-backend
-        run: ./gradlew test bootJar --no-daemon
+        run: ./gradlew check bootJar --no-daemon
+
 
       - name: Setup Flyctl
         uses: superfly/flyctl-actions/setup-flyctl@master

@@ -97,8 +97,8 @@ public class EmailNotificationService {
             "</body></html>";
             
         return template
-            .replace("{HEADER_TITLE}", headerTitle != null ? headerTitle : "")
-            .replace("{RECIPIENT_NAME}", recipientName != null ? recipientName : "")
+            .replace("{HEADER_TITLE}", headerTitle != null ? org.springframework.web.util.HtmlUtils.htmlEscape(headerTitle) : "")
+            .replace("{RECIPIENT_NAME}", recipientName != null ? org.springframework.web.util.HtmlUtils.htmlEscape(recipientName) : "")
             .replace("{CONTENT_HTML}", contentHtml != null ? contentHtml : "")
             .replace("{BUTTON_HTML}", buttonHtml != null ? buttonHtml : "");
     }
@@ -126,15 +126,16 @@ public class EmailNotificationService {
             "    </table>" +
             "  </td></tr>" +
             "</table>",
-            task.getTitle(),
-            task.getClient() != null ? task.getClient().getFullName() : "Не указан",
+            org.springframework.web.util.HtmlUtils.htmlEscape(task.getTitle()),
+            task.getClient() != null ? org.springframework.web.util.HtmlUtils.htmlEscape(task.getClient().getFullName()) : "Не указан",
             deadlineStr,
-            task.getDescription() != null && !task.getDescription().isBlank() ? task.getDescription() : "Отсутствует"
+            task.getDescription() != null && !task.getDescription().isBlank() ? org.springframework.web.util.HtmlUtils.htmlEscape(task.getDescription()) : "Отсутствует"
         );
 
         String html = buildFormalEmailHtml("Новая задача в системе", assignee.getFullName(), contentHtml, "Открыть задачу", frontendUrl);
         sendHtmlEmail(assignee.getEmail(), subject, html);
     }
+
 
     public void sendTaskDeadlineAlertEmail(User user, Task task) {
         if (user.getEmail() == null || user.getEmail().isBlank()) return;

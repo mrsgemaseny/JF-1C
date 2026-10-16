@@ -22,9 +22,9 @@ export function PrivacyPolicyPage() {
         {/* Header Banner */}
         <div className="bg-brand-green text-brand-beige rounded-3xl p-8 md:p-12 mb-10 shadow-lg relative overflow-hidden">
           <div className="relative z-10">
-            <div className="inline-flex items-center gap-2 rounded-full border border-brand-beige/20 bg-white/10 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-brand-beige/90 mb-4">
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-brand-beige/70 mb-4">
               <Shield className="w-4 h-4" />
-              Юридическая документация
+              <span>Юридическая документация</span>
             </div>
             <h1 className="text-3xl md:text-5xl font-black uppercase tracking-tight mb-4">
               Политика конфиденциальности

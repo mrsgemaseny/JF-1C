@@ -4,6 +4,7 @@ import * as authApi from './authApi';
 import type { AuthResponse, UserRole } from './authApi';
 
 import { AUTH_STORAGE_KEY } from '@/shared/constants/storageKeys';
+import { queryClient } from '@/shared/lib/queryClient';
 
 const STORAGE_KEY = AUTH_STORAGE_KEY;
 
@@ -23,9 +24,9 @@ export interface AuthContextValue {
   setUser: (user: StoredAuth | null) => void;
   updateUser: (fields: Partial<StoredAuth>) => void;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<{ requires2FA?: boolean; requires2FASetup?: boolean; requiresEmailOtp?: boolean; preAuthToken?: string } | void>;
+  login: (email: string, password: string) => Promise<{ requires2FA?: boolean; requires2FASetup?: boolean; requiresEmailOtp?: boolean; preAuthToken?: string; devOtpCode?: string } | void>;
   completeAuth: (response: authApi.AuthResponse) => void;
-  loginWithGoogle: (credential: string, role?: 'CLIENT' | 'EMPLOYEE') => Promise<{ requires2FA?: boolean; preAuthToken?: string; isPendingApproval?: boolean; isNewUser?: boolean }>;
+  loginWithGoogle: (credential: string, role?: 'CLIENT' | 'EMPLOYEE') => Promise<{ requires2FA?: boolean; requires2FASetup?: boolean; preAuthToken?: string; isPendingApproval?: boolean; isNewUser?: boolean }>;
   register: (req: authApi.RegisterRequest) => Promise<{ isPendingApproval: boolean; requiresEmailOtp?: boolean; preAuthToken?: string; devOtpCode?: string }>;
   logout: () => void;
 }
@@ -52,7 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<StoredAuth | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useMemo(() => {
+  useEffect(() => {
     const refresh = async () => {
       try {
         const response = await authApi.refresh();
@@ -61,6 +62,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return true;
       } catch {
         setUser(null);
+        queryClient.clear();
+        localStorage.removeItem(AUTH_STORAGE_KEY);
         return false;
       }
     };
@@ -91,7 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const response = await authApi.login({ email, password });
         if (response.requiresEmailOtp && response.preAuthToken) {
-          return { requiresEmailOtp: true, preAuthToken: response.preAuthToken };
+          return { requiresEmailOtp: true, preAuthToken: response.preAuthToken, devOtpCode: response.devOtpCode };
         }
         if (response.requires2FA && response.preAuthToken) {
           return {
@@ -131,7 +134,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const response = await authApi.loginWithGoogle(credential, role);
         if (response) {
           if (response.requires2FA && response.preAuthToken) {
-            return { requires2FA: true, preAuthToken: response.preAuthToken };
+            return {
+              requires2FA: true,
+              requires2FASetup: response.twoFactorEnabled === false,
+              preAuthToken: response.preAuthToken
+            };
           }
           if (response.isPendingApproval) {
             return { isPendingApproval: true, isNewUser: !!response.isNewUser };
@@ -153,6 +160,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } finally {
         setAccessToken(null);
         setUser(null);
+        queryClient.clear();
+        localStorage.removeItem(AUTH_STORAGE_KEY);
       }
     }
   }), [user, isLoading]);

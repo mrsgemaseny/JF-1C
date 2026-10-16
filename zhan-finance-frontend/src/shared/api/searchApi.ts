@@ -23,7 +23,9 @@ export interface CourseSearchDto {
 
 export interface LessonSearchDto {
   id: number;
-  sectionId: number;
+  chapterId?: number;
+  courseId?: number;
+  sectionId?: number;
   title: string;
   description: string;
   type: string;

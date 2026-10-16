@@ -11,11 +11,13 @@ export default defineConfig({
   plugins: [
     react(), 
     tailwindcss(),
-    sentryVitePlugin({
-      org: process.env.SENTRY_ORG || "zhanfinance",
-      project: process.env.SENTRY_PROJECT || "javascript-react",
-      authToken: process.env.SENTRY_AUTH_TOKEN,
-    })
+    ...(process.env.SENTRY_AUTH_TOKEN ? [
+      sentryVitePlugin({
+        org: process.env.SENTRY_ORG || "zhanfinance",
+        project: process.env.SENTRY_PROJECT || "javascript-react",
+        authToken: process.env.SENTRY_AUTH_TOKEN,
+      })
+    ] : [])
   ],
   server: {
     proxy: {

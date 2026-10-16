@@ -141,12 +141,12 @@ export function ChatDrawer({ isOpen, onClose, otherUserId, otherUserName, otherU
       return () => {
         isMounted = false;
         document.removeEventListener('visibilitychange', handleVisibilityChange);
-        if (stompClient) {
-          if (stompClient.connected) {
-            stompClient.deactivate().catch(() => {});
-          } else if (isConnecting) {
-            pendingDisconnect = true;
-          }
+        if (stompClient?.connected) {
+          void stompClient.deactivate().catch(() => {});
+        } else if (isConnecting) {
+          pendingDisconnect = true;
+        } else if (stompClient?.active) {
+          void stompClient.deactivate().catch(() => {});
         }
       };
     }

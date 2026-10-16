@@ -97,8 +97,8 @@ async function rawRequest<T>(path: string, init: RequestInit | undefined): Promi
     } else if (response.status === 429) {
       const retryAfter = response.headers.get('Retry-After');
       const msg = retryAfter
-          ? `Превышен лимит запросов. Повторите попытку через ${retryAfter} сек.`
-          : 'Превышен лимит запросов. Пожалуйста, подождите.';
+          ? i18n.t('common.rateLimitRetryAfter', { seconds: retryAfter, defaultValue: `Превышен лимит запросов. Повторите попытку через ${retryAfter} сек.` })
+          : i18n.t('common.rateLimitExceeded', { defaultValue: 'Превышен лимит запросов. Пожалуйста, подождите.' });
       toast.error(msg, { duration: 5000 });
     } else if (response.status !== 401) {
       toast.error(errorMessage, { duration: 6000 });
@@ -150,6 +150,7 @@ export async function apiRequest<T>(path: string, init?: RequestInit): Promise<T
 async function rawDownload(path: string, init: RequestInit | undefined): Promise<Blob> {
   const headers: Record<string, string> = {
     'X-Requested-With': 'XMLHttpRequest',
+    'Accept-Language': i18n.language ?? 'ru',
     ...(init?.headers as Record<string, string> | undefined)
   };
 
@@ -186,6 +187,12 @@ async function rawDownload(path: string, init: RequestInit | undefined): Promise
 
     if (response.status === 403) {
       toast.error(i18n.t('common.accessDenied', { defaultValue: 'У вас нет доступа к этому ресурсу.' }), { duration: 5000 });
+    } else if (response.status === 429) {
+      const retryAfter = response.headers.get('Retry-After');
+      const msg = retryAfter
+          ? i18n.t('common.rateLimitRetryAfter', { seconds: retryAfter, defaultValue: `Превышен лимит запросов. Повторите попытку через ${retryAfter} сек.` })
+          : i18n.t('common.rateLimitExceeded', { defaultValue: 'Превышен лимит запросов. Пожалуйста, подождите.' });
+      toast.error(msg, { duration: 5000 });
     } else if (response.status !== 401) {
       toast.error(errorMessage, { duration: 6000 });
     }

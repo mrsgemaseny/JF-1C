@@ -46,7 +46,7 @@ const getDynamicColor = (index: number) => {
 import { WeeklySummaryWidget } from '@/widgets/dashboard/WeeklySummaryWidget';
 
 export function AdminOverviewPage() {
-  const { t } = useTranslation(['common']);
+  const { t, i18n } = useTranslation(['common']);
   const [data, setData] = useState<AdminDashboardDto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -123,13 +123,13 @@ export function AdminOverviewPage() {
               <div>
                 <p className="text-sm text-gray-500">{t('adminDashboard.earned')}</p>
                 <p className="text-2xl font-bold text-green-600 mt-1">
-                  {new Intl.NumberFormat('ru-KZ', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(data.totalRevenue || 0)}
+                  {new Intl.NumberFormat(i18n.language === 'kk' ? 'kk-KZ' : i18n.language === 'en' ? 'en-US' : i18n.language === 'zh' ? 'zh-CN' : 'ru-KZ', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(data.totalRevenue || 0)}
                 </p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">{t('adminDashboard.expectedRevenue')}</p>
                 <p className="text-2xl font-bold text-amber-500 mt-1">
-                  {new Intl.NumberFormat('ru-KZ', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(data.expectedRevenue || 0)}
+                  {new Intl.NumberFormat(i18n.language === 'kk' ? 'kk-KZ' : i18n.language === 'en' ? 'en-US' : i18n.language === 'zh' ? 'zh-CN' : 'ru-KZ', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(data.expectedRevenue || 0)}
                 </p>
               </div>
            </div>
@@ -275,7 +275,7 @@ export function AdminOverviewPage() {
               ))}
               {data.employeeStats.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="py-4 text-center text-gray-500">
+                  <td colSpan={5} className="py-4 text-center text-gray-500">
                     {t('adminDashboard.noEmployees')}
                   </td>
                 </tr>

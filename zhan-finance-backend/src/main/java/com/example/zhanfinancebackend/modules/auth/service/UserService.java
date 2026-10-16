@@ -157,6 +157,18 @@ public class UserService {
             throw new BadRequestException("Допустимы только изображения");
         }
 
+        try {
+            org.apache.tika.Tika tika = new org.apache.tika.Tika();
+            String detectedType = tika.detect(file.getInputStream());
+            java.util.Set<String> allowedMimeTypes = java.util.Set.of("image/jpeg", "image/png", "image/webp");
+            if (!allowedMimeTypes.contains(detectedType)) {
+                throw new BadRequestException("Недопустимый формат изображения (разрешены только JPEG, PNG, WEBP)");
+            }
+        } catch (java.io.IOException e) {
+            throw new BadRequestException("Не удалось прочитать файл изображения");
+        }
+
+
         // Remove old avatar if exists
         if (user.getAvatarUrl() != null && user.getAvatarUrl().startsWith("/uploads/avatars/")) {
             String oldStorageKey = user.getAvatarUrl().substring("/uploads/avatars/".length());

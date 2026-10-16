@@ -22,6 +22,7 @@ public class ClientProfile extends BaseEntity {
     private String notes;
 
     protected ClientProfile() {
+
     }
 
     public ClientProfile(User user) {

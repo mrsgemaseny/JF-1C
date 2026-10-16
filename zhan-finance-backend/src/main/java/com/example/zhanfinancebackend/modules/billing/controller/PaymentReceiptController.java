@@ -104,16 +104,19 @@ public class PaymentReceiptController {
     }
 
     @GetMapping("/files/download")
+    @PreAuthorize("hasAnyRole('CLIENT', 'EMPLOYEE', 'ADMIN', 'ADVISOR')")
     public ResponseEntity<ByteArrayResource> downloadFallbackFile(
+            @AuthenticationPrincipal UserPrincipal principal,
             @RequestParam("key") String fileKey
     ) {
         if (fileKey == null || !fileKey.startsWith("receipts/")) {
             throw new BadRequestException("Invalid or unauthorized receipt file key.");
         }
-        byte[] data = paymentReceiptService.loadReceiptFileByKey(fileKey);
+        byte[] data = paymentReceiptService.loadReceiptFileByKey(principal.getUser(), fileKey);
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_PDF)
                 .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"receipt.pdf\"")
                 .body(new ByteArrayResource(data));
     }
 }
+

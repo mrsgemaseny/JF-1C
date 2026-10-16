@@ -45,6 +45,11 @@ public class TelegramNotification {
     @Column(name = "processed_at")
     private Instant processedAt;
 
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version = 0L;
+
+
     public TelegramNotification() {}
 
     public TelegramNotification(Long chatId, User user, String message) {

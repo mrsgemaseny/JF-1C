@@ -43,6 +43,7 @@ public class Stage extends BaseEntity {
 
     public Stage() {}
 
+
     public Stage(Pipeline pipeline, String name, Integer orderIndex, String color, StageType type) {
         this.pipeline = pipeline;
         this.name = name;

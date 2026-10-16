@@ -141,5 +141,21 @@
     "addLabel": "Add label...",
     "applying": "Applying...",
     "apply": "Apply"
+  },
+  "labels": {
+    "title": "Labels:",
+    "all": "All",
+    "addLabel": "Label",
+    "addLabelTitle": "Add custom label (max 5)",
+    "newLabel": "New label (up to 5)",
+    "nameEmpty": "Label name cannot be empty",
+    "createError": "Error creating label (maximum 5)",
+    "labelName": "Label name",
+    "placeholder": "e.g.: Urgent, Report...",
+    "labelColor": "Label color",
+    "cancel": "Cancel",
+    "create": "Create",
+    "savedLabels": "Your saved labels:",
+    "deleteLabel": "Delete label"
   }
 }

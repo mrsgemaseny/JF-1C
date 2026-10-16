@@ -259,4 +259,29 @@ class PaymentReceiptControllerTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data[0].id").value(100));
     }
+
+    @Test
+    @DisplayName("GET /api/v1/billing/receipts/files/download: client downloads fallback file successfully")
+    void downloadFallbackFile_authorized_returnsFile() throws Exception {
+        byte[] fileBytes = "%PDF-1.4 sample content".getBytes();
+        when(paymentReceiptService.loadReceiptFileByKey(org.mockito.ArgumentMatchers.argThat(u -> u != null && u.getId().equals(10L)), eq("receipts/test.pdf")))
+                .thenReturn(fileBytes);
+
+        mockMvc.perform(get("/api/v1/billing/receipts/files/download")
+                        .param("key", "receipts/test.pdf")
+                        .contextPath("/api")
+                        .with(user(clientPrincipal))
+                        .header("X-Requested-With", "XMLHttpRequest"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/billing/receipts/files/download: unauthorized returns 401")
+    void downloadFallbackFile_unauthorized_returns401() throws Exception {
+        mockMvc.perform(get("/api/v1/billing/receipts/files/download")
+                        .param("key", "receipts/test.pdf")
+                        .contextPath("/api")
+                        .header("X-Requested-With", "XMLHttpRequest"))
+                .andExpect(status().isUnauthorized());
+    }
 }

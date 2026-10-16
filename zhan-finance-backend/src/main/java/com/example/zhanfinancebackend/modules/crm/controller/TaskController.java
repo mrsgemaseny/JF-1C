@@ -280,11 +280,12 @@ public class TaskController {
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     public ApiResponse<Void> batchUpdateTasks(
             @AuthenticationPrincipal UserPrincipal principal,
-            @RequestBody TaskBatchOperationRequest request
+            @jakarta.validation.Valid @RequestBody TaskBatchOperationRequest request
     ) {
         taskService.batchUpdateTasks(request, principal.getUser());
         return ApiResponse.success(null);
     }
+
 
     @PostMapping("/{id}/claim")
     @Operation(summary = "Атомарный захват задачи из пула")

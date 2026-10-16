@@ -69,7 +69,7 @@ public class GlobalSearchService {
     }
 
     private boolean canAccessTask(User user, Task t) {
-        if (user.getRole() == Role.ADMIN) return true;
+        if (user.getRole() == Role.ADMIN || user.getRole() == Role.ADVISOR) return true;
         if (user.getRole() == Role.EMPLOYEE) {
             return t.getAssignedTo() != null && t.getAssignedTo().getId().equals(user.getId()) ||
                     (t.getClient() != null && t.getClient().getAssignedEmployee() != null && t.getClient().getAssignedEmployee().getId().equals(user.getId()));
@@ -89,7 +89,7 @@ public class GlobalSearchService {
     }
 
     private boolean canAccessUser(User user, User u) {
-        if (user.getRole() == Role.ADMIN) return true;
+        if (user.getRole() == Role.ADMIN || user.getRole() == Role.ADVISOR) return true;
         if (user.getRole() == Role.EMPLOYEE) {
             return u.getRole() == Role.CLIENT && u.getAssignedEmployee() != null && u.getAssignedEmployee().getId().equals(user.getId());
         }
@@ -98,6 +98,7 @@ public class GlobalSearchService {
         }
         return false;
     }
+
 
     private List<CourseDto> searchCourses(User user, String query) {
         List<Course> foundCourses = user.getRole() == Role.ADMIN ? 
@@ -137,7 +138,12 @@ public class GlobalSearchService {
     private LessonDto mapToLessonDto(Lesson l) {
         LessonDto dto = new LessonDto();
         dto.setId(l.getId());
-        if (l.getChapter() != null) dto.setChapterId(l.getChapter().getId());
+        if (l.getChapter() != null) {
+            dto.setChapterId(l.getChapter().getId());
+            if (l.getChapter().getCourse() != null) {
+                dto.setCourseId(l.getChapter().getCourse().getId());
+            }
+        }
         dto.setTitle(l.getTitle());
         dto.setDescription(l.getDescription());
         dto.setType(l.getType());

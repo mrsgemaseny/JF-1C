@@ -372,7 +372,38 @@
     "saving": "Saving...",
     "googleNoPassword": "You signed in via Google, so password change is not available here. Manage security in your Google account.",
     "language": "Interface Language",
-    "languageDesc": "Select your preferred language for the system"
+    "languageDesc": "Select your preferred language for the system",
+    "google": {
+      "title": "Google Account",
+      "description": "Link your Google account for quick and secure one-click login.",
+      "linked": "Google linked",
+      "notLinked": "Google not linked",
+      "notLinkedDesc": "Login available with username and password",
+      "linkSuccess": "Google account successfully linked!",
+      "linkError": "Failed to link Google account",
+      "gisError": "Google Identity Services error"
+    },
+    "telegram": {
+      "title": "Telegram",
+      "description": "Link your Telegram account to receive notifications about tasks, invoices, and messages directly in the bot.",
+      "loading": "Loading...",
+      "linked": "Linked",
+      "unlink": "Unlink",
+      "unlinkConfirm": "Unlink Telegram account?",
+      "unlinkError": "Unlink error",
+      "generateError": "Error generating link",
+      "brandLogo": "ZHAN FINANCE",
+      "scanWithPhone": "Scan with phone camera",
+      "twoWaysBadge": "Two connection methods",
+      "connectionTitle": "Connecting Telegram notifications",
+      "step1": "<strong>From smartphone:</strong> point your phone camera at the QR code and open the link in Telegram.",
+      "step2": "<strong>From computer:</strong> click the 'Open in Telegram' button below.",
+      "step3": "In the bot chat that opens, click <strong>Start</strong>. Your account will link instantly.",
+      "openInTelegram": "Open in Telegram",
+      "refreshQr": "Refresh QR code",
+      "qrValidityHint": "QR code and link are valid for 15 minutes. Status will update automatically right after clicking Start in the bot.",
+      "connectTelegram": "Connect Telegram"
+    }
   },
   "adminDashboard": {
     "title": "Overview",
@@ -2023,7 +2054,13 @@
       "loadError": "Failed to load payment receipts",
       "confirmSuccess": "Receipt confirmed, subscription activated for 30 days",
       "confirmError": "Failed to confirm receipt",
-      "rejectedSuccess": "Receipt rejected"
+      "rejectedSuccess": "Receipt rejected",
+      "stats": {
+        "total": "Total receipts",
+        "awaiting": "Awaiting review",
+        "rejected": "Rejected",
+        "confirmed": "Confirmed"
+      }
     }
   }
 }

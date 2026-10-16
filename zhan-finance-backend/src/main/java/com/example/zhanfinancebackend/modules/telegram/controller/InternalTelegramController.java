@@ -74,9 +74,10 @@ public class InternalTelegramController {
                 .orElseThrow(() -> new ResourceNotFoundException("Telegram link not found for chat ID: " + chatId));
 
         User user = link.getUser();
-        if (user == null) {
-            throw new ResourceNotFoundException("User not found for Telegram link: " + chatId);
+        if (user == null || !user.isEnabled() || user.isDeleted()) {
+            throw new ResourceNotFoundException("Active user not found for Telegram link: " + chatId);
         }
+
 
         Optional<ClientProfile> profileOpt = clientProfileRepository.findByUser(user);
 

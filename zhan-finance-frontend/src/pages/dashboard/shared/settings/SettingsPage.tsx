@@ -4,7 +4,7 @@ import { useAuth } from '@/features/auth/AuthContext';
 import { getMyProfile, updateMyProfile, updateMyPassword, uploadAvatar, UserProfileDto } from '@/entities/user/api/userApi';
 import { Spinner } from '@/shared/ui/Spinner';
 import { getSecureImageUrl, apiRequest } from '@/shared/api/http';
-import { useTranslation } from 'react-i18next';
+import { useTranslation, Trans } from 'react-i18next';
 import { LanguageSwitcher } from '@/shared/ui/LanguageSwitcher';
 import { QRCodeSVG } from 'qrcode.react';
 import { linkGoogle } from '@/features/auth/authApi';
@@ -64,10 +64,10 @@ export function SettingsPage() {
   async function handleLinkGoogle(credential: string) {
     try {
       await linkGoogle(credential);
-      toast.success('Google-аккаунт успешно привязан!');
+      toast.success(t('settings.google.linkSuccess', { defaultValue: 'Google-аккаунт успешно привязан!' }));
       loadProfile();
     } catch (err: any) {
-      toast.error(err?.message || 'Ошибка привязки Google-аккаунта');
+      toast.error(err?.message || t('settings.google.linkError', { defaultValue: 'Ошибка привязки Google-аккаунта' }));
     }
   }
 
@@ -116,21 +116,21 @@ export function SettingsPage() {
       const data = await apiRequest<TelegramLinkToken>('/api/v1/telegram/link/generate', { method: 'POST' });
       setTgLinkData(data);
     } catch (e: any) {
-      alert(e.message || 'Ошибка генерации ссылки');
+      alert(e.message || t('settings.telegram.generateError', { defaultValue: 'Ошибка генерации ссылки' }));
     } finally {
       setTgGenerating(false);
     }
   }
 
   async function handleUnlinkTelegram() {
-    if (!confirm('Отвязать Telegram-аккаунт?')) return;
+    if (!confirm(t('settings.telegram.unlinkConfirm', { defaultValue: 'Отвязать Telegram-аккаунт?' }))) return;
     setTgUnlinking(true);
     try {
       await apiRequest('/api/v1/telegram/link', { method: 'DELETE' });
       setTgStatus({ linked: false });
       setTgLinkData(null);
     } catch (e: any) {
-      alert(e.message || 'Ошибка отвязки');
+      alert(e.message || t('settings.telegram.unlinkError', { defaultValue: 'Ошибка отвязки' }));
     } finally {
       setTgUnlinking(false);
     }
@@ -446,16 +446,16 @@ export function SettingsPage() {
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
             </svg>
-            <h3 className="text-lg sm:text-xl font-bold text-gray-900">Google Аккаунт</h3>
+            <h3 className="text-lg sm:text-xl font-bold text-gray-900">{t('settings.google.title', { defaultValue: 'Google Аккаунт' })}</h3>
           </div>
           <p className="text-xs sm:text-sm text-gray-500 mb-4 sm:mb-6">
-            Привяжите ваш аккаунт Google для быстрого и безопасного входа в систему в один клик.
+            {t('settings.google.description', { defaultValue: 'Привяжите ваш аккаунт Google для быстрого и безопасного входа в систему в один клик.' })}
           </p>
 
           {profile?.googleLinked ? (
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 p-3.5 sm:p-4 bg-emerald-50 border border-emerald-100 rounded-xl">
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-emerald-800">Google привязан</p>
+                <p className="text-sm font-semibold text-emerald-800">{t('settings.google.linked', { defaultValue: 'Google привязан' })}</p>
                 {profile.googleEmail && (
                   <p className="text-xs sm:text-sm text-gray-600 mt-0.5 truncate">{profile.googleEmail}</p>
                 )}
@@ -464,14 +464,14 @@ export function SettingsPage() {
           ) : (
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-3.5 sm:p-4 bg-gray-50 border border-gray-100 rounded-xl">
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-gray-800">Google не привязан</p>
-                <p className="text-xs text-gray-500 mt-0.5">Вход доступен по логину и паролю</p>
+                <p className="text-sm font-semibold text-gray-800">{t('settings.google.notLinked', { defaultValue: 'Google не привязан' })}</p>
+                <p className="text-xs text-gray-500 mt-0.5">{t('settings.google.notLinkedDesc', { defaultValue: 'Вход доступен по логину и паролю' })}</p>
               </div>
               <div className="w-full sm:w-auto flex justify-start sm:justify-end overflow-hidden max-w-full">
                 <div className="max-w-full overflow-hidden">
                   <GoogleLogin
                     onSuccess={(r) => { if (r.credential) handleLinkGoogle(r.credential); }}
-                    onError={() => toast.error('Ошибка Google Identity Services')}
+                    onError={() => toast.error(t('settings.google.gisError', { defaultValue: 'Ошибка Google Identity Services' }))}
                     text="signin_with"
                     shape="rectangular"
                     size="large"
@@ -487,20 +487,20 @@ export function SettingsPage() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6 md:p-8">
           <div className="flex items-center gap-2 mb-2">
             <MessageCircle className="w-5 h-5 text-[#2AABEE] shrink-0" />
-            <h3 className="text-lg sm:text-xl font-bold text-gray-900">Telegram</h3>
+            <h3 className="text-lg sm:text-xl font-bold text-gray-900">{t('settings.telegram.title', { defaultValue: 'Telegram' })}</h3>
           </div>
           <p className="text-xs sm:text-sm text-gray-500 mb-4 sm:mb-6">
-            Привяжите Telegram-аккаунт, чтобы получать уведомления о задачах, счетах и сообщениях прямо в бот.
+            {t('settings.telegram.description', { defaultValue: 'Привяжите Telegram-аккаунт, чтобы получать уведомления о задачах, счетах и сообщениях прямо в бот.' })}
           </p>
 
           {tgLoading ? (
             <div className="flex items-center gap-2 text-gray-400 text-sm">
-              <Spinner className="w-4 h-4" /> Загрузка...
+              <Spinner className="w-4 h-4" /> {t('settings.telegram.loading', { defaultValue: 'Загрузка...' })}
             </div>
           ) : tgStatus?.linked ? (
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 p-3.5 sm:p-4 bg-green-50 border border-green-100 rounded-xl">
               <div>
-                <p className="text-sm font-semibold text-green-700">Привязан</p>
+                <p className="text-sm font-semibold text-green-700">{t('settings.telegram.linked', { defaultValue: 'Привязан' })}</p>
                 {tgStatus.telegramUsername && (
                   <p className="text-xs sm:text-sm text-gray-600 mt-0.5">@{tgStatus.telegramUsername}</p>
                 )}
@@ -511,7 +511,7 @@ export function SettingsPage() {
                 className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-60 shrink-0"
               >
                 {tgUnlinking ? <Spinner className="w-4 h-4" /> : <Unlink className="w-4 h-4" />}
-                Отвязать
+                {t('settings.telegram.unlink', { defaultValue: 'Отвязать' })}
               </button>
             </div>
           ) : (
@@ -525,7 +525,9 @@ export function SettingsPage() {
                       <div className="relative pt-5">
                         {/* Верхний бейдж с логотипом ЖАН FINANCE */}
                         <div className="absolute -top-1 left-1/2 -translate-x-1/2 z-10 bg-white border border-gray-200/80 px-4 py-1.5 rounded-full shadow-md flex items-center gap-1.5 whitespace-nowrap">
-                          <span className="text-[11px] font-black text-brand-green tracking-wider uppercase">ЖАН FINANCE</span>
+                          <span className="text-[11px] font-black text-brand-green tracking-wider uppercase">
+                            {t('settings.telegram.brandLogo', { defaultValue: 'ЖАН FINANCE' })}
+                          </span>
                         </div>
 
                         {/* Белая карточка с закругленными углами */}
@@ -548,7 +550,7 @@ export function SettingsPage() {
                             @{tgLinkData.deepLink.match(/t\.me\/([^?]+)/)?.[1]?.toUpperCase() || 'ZHANFINANCEBOT'}
                           </span>
                           <span className="text-xs text-gray-400 mt-1 font-medium">
-                            Сканируйте камерой телефона
+                            {t('settings.telegram.scanWithPhone', { defaultValue: 'Сканируйте камерой телефона' })}
                           </span>
                         </div>
                       </div>
@@ -559,23 +561,44 @@ export function SettingsPage() {
                       <div>
                         <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-100/80 text-[#1e96d3] rounded-full text-xs font-bold mb-3">
                           <MessageCircle className="w-3.5 h-3.5" />
-                          Два способа подключения
+                          {t('settings.telegram.twoWaysBadge', { defaultValue: 'Два способа подключения' })}
                         </div>
                         <h4 className="text-lg font-bold text-gray-900 mb-2">
-                          Подключение Telegram-уведомлений
+                          {t('settings.telegram.connectionTitle', { defaultValue: 'Подключение Telegram-уведомлений' })}
                         </h4>
                         <ul className="text-sm text-gray-600 space-y-2.5 mb-4 text-left max-w-md mx-auto md:mx-0">
                           <li className="flex items-start gap-2.5">
                             <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
-                            <span><strong>Со смартфона:</strong> наведите камеру телефона на QR-код и откройте ссылку в Telegram.</span>
+                            <span>
+                              <Trans
+                                i18nKey="settings.telegram.step1"
+                                ns="common"
+                                components={{ strong: <strong /> }}
+                                defaults="<strong>Со смартфона:</strong> наведите камеру телефона на QR-код и откройте ссылку в Telegram."
+                              />
+                            </span>
                           </li>
                           <li className="flex items-start gap-2.5">
                             <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
-                            <span><strong>С компьютера:</strong> нажмите кнопку «Открыть в Telegram» ниже.</span>
+                            <span>
+                              <Trans
+                                i18nKey="settings.telegram.step2"
+                                ns="common"
+                                components={{ strong: <strong /> }}
+                                defaults="<strong>С компьютера:</strong> нажмите кнопку «Открыть в Telegram» ниже."
+                              />
+                            </span>
                           </li>
                           <li className="flex items-start gap-2.5">
                             <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
-                            <span>В открывшемся диалоге с ботом нажмите <strong>Запустить (Start)</strong>. Аккаунт привяжется мгновенно.</span>
+                            <span>
+                              <Trans
+                                i18nKey="settings.telegram.step3"
+                                ns="common"
+                                components={{ strong: <strong /> }}
+                                defaults="В открывшемся диалоге с ботом нажмите <strong>Запустить (Start)</strong>. Аккаунт привяжется мгновенно."
+                              />
+                            </span>
                           </li>
                         </ul>
                       </div>
@@ -589,21 +612,21 @@ export function SettingsPage() {
                             className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#2AABEE] text-white text-sm font-bold rounded-xl hover:bg-[#1e96d3] shadow-sm hover:shadow-md transition-all active:scale-95"
                           >
                             <MessageCircle className="w-4 h-4" />
-                            Открыть в Telegram
+                            {t('settings.telegram.openInTelegram', { defaultValue: 'Открыть в Telegram' })}
                             <ExternalLink className="w-3.5 h-3.5 opacity-70" />
                           </a>
 
                           <button
                             onClick={handleGenerateTgLink}
                             disabled={tgGenerating}
-                            className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-3 border border-gray-200 bg-white text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-60"
+                            className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-3 border border-gray-200 bg-white text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-60 cursor-pointer"
                           >
                             <RefreshCw className={`w-3.5 h-3.5 ${tgGenerating ? 'animate-spin' : ''}`} />
-                            Обновить QR-код
+                            {t('settings.telegram.refreshQr', { defaultValue: 'Обновить QR-код' })}
                           </button>
                         </div>
                         <p className="text-xs text-gray-400">
-                          QR-код и ссылка действительны 15 минут. Статус обновится автоматически сразу после нажатия Start в боте.
+                          {t('settings.telegram.qrValidityHint', { defaultValue: 'QR-код и ссылка действительны 15 минут. Статус обновится автоматически сразу после нажатия Start в боте.' })}
                         </p>
                       </div>
                     </div>
@@ -614,10 +637,10 @@ export function SettingsPage() {
                 <button
                   onClick={handleGenerateTgLink}
                   disabled={tgGenerating}
-                  className="flex items-center gap-2 px-6 py-3 bg-[#2AABEE] text-white font-semibold rounded-xl hover:bg-[#1e96d3] hover:shadow-md transition-all disabled:opacity-60"
+                  className="flex items-center gap-2 px-6 py-3 bg-[#2AABEE] text-white font-semibold rounded-xl hover:bg-[#1e96d3] hover:shadow-md transition-all disabled:opacity-60 cursor-pointer"
                 >
                   {tgGenerating ? <Spinner className="w-4 h-4 text-white" /> : <MessageCircle className="w-4 h-4" />}
-                  Подключить Telegram
+                  {t('settings.telegram.connectTelegram', { defaultValue: 'Подключить Telegram' })}
                 </button>
               )}
             </div>

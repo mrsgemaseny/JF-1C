@@ -21,7 +21,7 @@ import { usePipelinesQuery } from '@/entities/pipeline/api/pipelineQueries';
 import { useUpdateTaskStage } from '@/entities/task/api/taskQueries';
 import { Spinner } from '@/shared/ui/Spinner';
 import { getTask } from '@/entities/task/api/taskApi';
-import { TaskDetailsModal } from '@/entities/task/ui/TaskDetailsModal';
+import { TaskDetailsModal } from '@/widgets/task-details-modal/ui/TaskDetailsModal';
 import { ChatDrawer } from '@/widgets/chat/ChatDrawer';
 import { toast } from '@/shared/ui/Toast/ToastContext';
 import { useTranslation } from 'react-i18next';
@@ -29,7 +29,7 @@ import { UserLabelManager } from '@/features/labels/ui/UserLabelManager';
 
 interface TaskKanbanBoardProps {
   initialTasks: TaskDto[];
-  userRole: 'ADMIN' | 'EMPLOYEE' | 'CLIENT' | 'LEARNER';
+  userRole: 'ADMIN' | 'EMPLOYEE' | 'CLIENT' | 'LEARNER' | 'ADVISOR' | 'CURATOR';
 }
 
 export interface TaskKanbanBoardRef {
@@ -230,7 +230,9 @@ export const TaskKanbanBoard = forwardRef<TaskKanbanBoardRef, TaskKanbanBoardPro
     if (!isNaN(taskIdNum) && movingTaskIdsRef.current.has(taskIdNum)) {
       return;
     }
-    columnsSnapshotRef.current = { ...columns };
+    columnsSnapshotRef.current = Object.fromEntries(
+      Object.entries(columns).map(([k, v]) => [k, v.map(t => ({ ...t }))])
+    );
     const container = findContainer(active.id);
     if (container) {
       const task = columns[container].find(t => String(t.id) === String(active.id));
@@ -277,9 +279,9 @@ export const TaskKanbanBoard = forwardRef<TaskKanbanBoardRef, TaskKanbanBoardPro
       
       // Optimistically update stageId so it renders correctly
       const stageIdStr = overContainer.replace('stage-', '');
-      item.stageId = parseInt(stageIdStr, 10);
+      const updatedItem = { ...item, stageId: parseInt(stageIdStr, 10) };
       
-      newOver.splice(overIndex >= 0 ? overIndex : overItems.length, 0, item);
+      newOver.splice(overIndex >= 0 ? overIndex : overItems.length, 0, updatedItem);
 
       return {
         ...prev,

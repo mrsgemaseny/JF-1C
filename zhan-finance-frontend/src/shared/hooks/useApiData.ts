@@ -1,15 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
+import { ApiError } from '@/shared/api/http';
 
-export class ApiError extends Error {
-  constructor(
-    public statusCode: number,
-    message: string,
-    public isRetryable: boolean = false
-  ) {
-    super(message);
-    this.name = 'ApiError';
-  }
-}
+export { ApiError } from '@/shared/api/http';
 
 export interface ApiDataState<T> {
   data: T | null;
@@ -39,14 +31,13 @@ export function useApiData<T>(
       setData(result);
       setRetryCount(0);
     } catch (err: any) {
-      const statusCode = err.response?.status || err.statusCode || 500;
-      const message = err.response?.data?.message || err.message || 'Unknown error';
-      // 401 and 403 usually are not retryable
-      const isRetryable = err.isRetryable ?? (statusCode !== 401 && statusCode !== 403 && statusCode < 500);
+      const statusCode = err instanceof ApiError ? err.status : (err.response?.status || err.statusCode || err.status || 500);
+      const message = err instanceof ApiError ? err.message : (err.response?.data?.message || err.message || 'Unknown error');
+      const isRetryable = (statusCode >= 500 || statusCode === 408 || statusCode === 429);
 
-      const apiError = err instanceof ApiError ? err : new ApiError(statusCode, message, isRetryable);
+      const apiError = err instanceof ApiError ? err : new ApiError(message, statusCode);
 
-      if (apiError.isRetryable && retryCount < (options?.retries || 3)) {
+      if (isRetryable && retryCount < (options?.retries || 3)) {
         setTimeout(() => {
           setRetryCount((prev) => prev + 1);
           fetchData();

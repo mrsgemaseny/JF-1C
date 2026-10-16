@@ -32,7 +32,12 @@ public class TelegramLink {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt = Instant.now();
 
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version = 0L;
+
     public TelegramLink() {}
+
 
     public TelegramLink(User user, Long chatId, String telegramUsername) {
         this.user = user;

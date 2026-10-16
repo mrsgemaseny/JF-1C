@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,6 +33,7 @@ public class SubscriptionController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE', 'CLIENT', 'ADVISOR')")
     public ApiResponse<?> findAll(
             @AuthenticationPrincipal UserPrincipal principal,
             @RequestParam(required = false) Integer page,
@@ -45,6 +47,7 @@ public class SubscriptionController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<SubscriptionDto> create(
             @AuthenticationPrincipal UserPrincipal principal,
             @Valid @RequestBody SubscriptionDto request
@@ -53,6 +56,7 @@ public class SubscriptionController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<SubscriptionDto> update(
             @AuthenticationPrincipal UserPrincipal principal,
             @PathVariable Long id,
@@ -62,6 +66,7 @@ public class SubscriptionController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<Void> delete(
             @AuthenticationPrincipal UserPrincipal principal,
             @PathVariable Long id
@@ -70,3 +75,4 @@ public class SubscriptionController {
         return ApiResponse.success(null, "Subscription deleted");
     }
 }
+

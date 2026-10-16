@@ -12,8 +12,13 @@ public class DocumentAccessService {
 
     public boolean canRead(User actor, Document document) {
         if (actor == null || document == null) return false;
-        if (actor.getRole() == Role.ADMIN || actor.getRole() == Role.ADVISOR || actor.getRole() == Role.EMPLOYEE) {
+        if (actor.getRole() == Role.ADMIN || actor.getRole() == Role.ADVISOR) {
             return true;
+        }
+        if (actor.getRole() == Role.EMPLOYEE) {
+            return sameUser(actor, document.getUser())
+                    || assignedToEmployee(actor, document.getUser())
+                    || (document.getTask() != null && document.getTask().getAssignedTo() != null && sameUser(actor, document.getTask().getAssignedTo()));
         }
         if (actor.getRole() == Role.CLIENT) {
             return sameUser(actor, document.getUser());
@@ -23,9 +28,18 @@ public class DocumentAccessService {
 
     public boolean canWrite(User actor, Document document) {
         if (actor == null || document == null) return false;
-        return actor.getRole() == Role.ADMIN
-                || actor.getRole() == Role.EMPLOYEE
-                || (actor.getRole() == Role.CLIENT && sameUser(actor, document.getUser()));
+        if (actor.getRole() == Role.ADMIN) {
+            return true;
+        }
+        if (actor.getRole() == Role.EMPLOYEE) {
+            return sameUser(actor, document.getUser())
+                    || assignedToEmployee(actor, document.getUser())
+                    || (document.getTask() != null && document.getTask().getAssignedTo() != null && sameUser(actor, document.getTask().getAssignedTo()));
+        }
+        if (actor.getRole() == Role.CLIENT) {
+            return sameUser(actor, document.getUser());
+        }
+        return false;
     }
 
     public void assertCanRead(User actor, Document document) {
@@ -42,9 +56,16 @@ public class DocumentAccessService {
 
     public boolean canCreateFor(User actor, User targetUser) {
         if (actor == null) return false;
-        return actor.getRole() == Role.ADMIN
-                || actor.getRole() == Role.EMPLOYEE
-                || (actor.getRole() == Role.CLIENT && sameUser(actor, targetUser));
+        if (actor.getRole() == Role.ADMIN) {
+            return true;
+        }
+        if (actor.getRole() == Role.EMPLOYEE) {
+            return sameUser(actor, targetUser) || assignedToEmployee(actor, targetUser);
+        }
+        if (actor.getRole() == Role.CLIENT) {
+            return sameUser(actor, targetUser);
+        }
+        return false;
     }
 
     public void assertCanCreateFor(User actor, User targetUser) {
@@ -54,11 +75,14 @@ public class DocumentAccessService {
     }
 
     private boolean sameUser(User left, User right) {
+        if (left == null || right == null) return false;
         return left.getId() != null && left.getId().equals(right.getId());
     }
 
     private boolean assignedToEmployee(User employee, User client) {
+        if (employee == null || client == null) return false;
         return client.getAssignedEmployee() != null && sameUser(employee, client.getAssignedEmployee());
     }
 }
+
 
