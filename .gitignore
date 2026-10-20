@@ -137,3 +137,8 @@ tests/e2e/.auth-cache.json
 !.agents/AGENTS.md
 !.agents/CONTEXT.md
 
+
+!zhan-finance-android/src/shared/storage/**
+
+!zhan-finance-android/src/shared/storage/
+!zhan-finance-android/src/shared/storage/**

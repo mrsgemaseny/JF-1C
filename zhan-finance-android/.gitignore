@@ -11,3 +11,5 @@ ios/
 *.mobileprovision
 *.orig.*
 .env*.local
+
+!src/shared/storage/**
