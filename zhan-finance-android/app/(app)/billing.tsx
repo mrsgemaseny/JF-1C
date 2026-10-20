@@ -1,4 +1,3 @@
-import React from 'react';
 import { View, Text, FlatList } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import { useMutation, useQuery } from '@tanstack/react-query';

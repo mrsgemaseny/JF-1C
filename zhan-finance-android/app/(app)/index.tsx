@@ -1,4 +1,3 @@
-import React from 'react';
 import { ScrollView, View, Text, RefreshControl } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';

@@ -1,4 +1,3 @@
-import React from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import {
