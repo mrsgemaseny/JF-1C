@@ -21,7 +21,7 @@ describe('Android HTTP Single-Flight Refresh Mutex & Offline Queue', () => {
   it('preserves refreshToken in Keystore when network drops during token refresh', async () => {
     await secureAuthStorage.setRefreshToken('rt-initial-device-token');
 
-    global.fetch = vi.fn().mockRejectedValue(new Error('Network unreachable'));
+    globalThis.fetch = vi.fn().mockRejectedValue(new Error('Network unreachable'));
 
     const status = await executeTokenRefreshSingleFlight();
 
@@ -33,7 +33,7 @@ describe('Android HTTP Single-Flight Refresh Mutex & Offline Queue', () => {
     await secureAuthStorage.setRefreshToken('rt-v1');
 
     let refreshCallCount = 0;
-    global.fetch = vi.fn().mockImplementation(async () => {
+    globalThis.fetch = vi.fn().mockImplementation(async () => {
       refreshCallCount++;
       await new Promise((r) => setTimeout(r, 25));
       return new Response(
@@ -66,7 +66,7 @@ describe('Android HTTP Single-Flight Refresh Mutex & Offline Queue', () => {
   it('clears session only when server explicitly returns 401 on /auth/refresh', async () => {
     await secureAuthStorage.setRefreshToken('rt-revoked');
 
-    global.fetch = vi.fn().mockResolvedValue(
+    globalThis.fetch = vi.fn().mockResolvedValue(
       new Response(JSON.stringify({ message: 'Revoked' }), { status: 401 })
     );
 
@@ -84,7 +84,7 @@ describe('Android HTTP Single-Flight Refresh Mutex & Offline Queue', () => {
     expect(getOfflineMutationQueue()).toHaveLength(1);
 
     let capturedIdempotencyKey: string | undefined;
-    global.fetch = vi.fn().mockImplementation(async (_url, init) => {
+    globalThis.fetch = vi.fn().mockImplementation(async (_url, init) => {
       const headers = init?.headers as Record<string, string>;
       capturedIdempotencyKey = headers['Idempotency-Key'];
       return new Response(
@@ -109,7 +109,7 @@ describe('Android HTTP Single-Flight Refresh Mutex & Offline Queue', () => {
     await secureAuthStorage.setRefreshToken('valid-rt');
 
     let attempt = 0;
-    global.fetch = vi.fn().mockImplementation(async (url: string) => {
+    globalThis.fetch = vi.fn().mockImplementation(async (url: string) => {
       if (url.includes('/auth/refresh')) {
         return new Response(
           JSON.stringify({

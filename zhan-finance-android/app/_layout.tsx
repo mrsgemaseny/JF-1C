@@ -84,7 +84,7 @@ export default function RootLayout() {
         persistOptions={{ persister: queryCachePersister }}
       >
         <AuthProvider>
-          <StatusBar style="light" backgroundColor="#0a0a0c" />
+          <StatusBar style="light" />
           <NavigationAndBiometricGuard />
         </AuthProvider>
       </PersistQueryClientProvider>

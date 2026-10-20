@@ -51,7 +51,10 @@
               "scheme": "zhanfinance"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },
@@ -75,7 +78,10 @@
         {
           "color": "#10b981"
         }
-      ]
+      ],
+      "expo-localization",
+      "expo-sharing",
+      "expo-status-bar"
     ]
   }
 }
