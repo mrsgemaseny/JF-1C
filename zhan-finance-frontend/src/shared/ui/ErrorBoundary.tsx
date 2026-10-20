@@ -1,6 +1,7 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { Translation } from 'react-i18next';
 import * as Sentry from '@sentry/react';
+import { isChunkLoadError, markChunkLoadSuccess } from '@/shared/lib/react/chunkRecovery';
 
 interface Props {
   children?: ReactNode;
@@ -29,6 +30,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   private handleReset = () => {
+    markChunkLoadSuccess();
     this.setState({ hasError: false, error: null });
     if (this.props.onReset) {
       this.props.onReset();
@@ -43,11 +45,7 @@ export class ErrorBoundary extends Component<Props, State> {
         return this.props.fallback;
       }
 
-      const isChunkError =
-        this.state.error?.name === 'ChunkLoadError' ||
-        this.state.error?.message?.includes('Failed to fetch dynamically imported module') ||
-        this.state.error?.message?.includes('Importing a module script failed') ||
-        this.state.error?.message?.includes('dynamically imported module');
+      const isChunkError = isChunkLoadError(this.state.error);
 
       return (
         <Translation ns="common">

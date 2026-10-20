@@ -9,7 +9,7 @@
 ## Infrastructure & Test State
 - **Backend Monolith (Spring Boot 3 / Java 17)**: 100% test pass rate (`./gradlew check`: 369 tests PASS) across all modules (Auth, Admin, CRM, Billing, LMS, Documents, Chat, Notifications, Search, WebSocket ACL, EmailOtp, GoogleAuth, PaymentReceipts). JaCoCo verified.
 - **Telegram Bot Microservice**: `zhan-finance-tgbot` (`C:\Users\murat\IdeaProjects\zhan-finance-tgbot`, Spring Boot 3 / Java 17, порт 8081). 100% test pass rate (`./gradlew check`: 89 tests PASS), JaCoCo verified. Communicates with monolith via `/api/v1/internal/**` with `X-Internal-Token` (`Role.INTERNAL_BOT`).
-- **Frontend (React 19 / Vite / Tailwind v4)**: 100% Vitest test pass rate (25 test files, 198 tests PASS), strict TypeScript verification (`npx tsc -b`: 0 errors), and clean ESLint 9 flat config (`npm run lint`: 0 errors, 0 warnings).
+- **Frontend (React 19 / Vite / Tailwind v4)**: 100% Vitest test pass rate (26 test files, 214 tests PASS), strict TypeScript verification (`npm run typecheck`: 0 errors), and clean ESLint 9 flat config (`npm run lint`: 0 errors, 0 warnings).
 - **CI/CD (.github/workflows/ci.yml & deploy-backend.yml)**: Continuous quality gate enforcing `./gradlew check`, frontend linting, typechecking, and Vitest execution.
 - **Auth & Security**: JWT Bearer, refresh token rotation with pessimistic locking (`findByTokenForUpdate`), AES-256-GCM TOTP 2FA with key rotation fallback, Apache Tika MIME validation, HTML escaping in emails, rate limiting, and row-level CRM access controls.
 - **Roles (6)**: ADMIN, EMPLOYEE, CLIENT, LEARNER, CURATOR, ADVISOR (plus INTERNAL_BOT).
@@ -23,10 +23,10 @@
    - **Frontend Architecture & FSD**: Moved `TaskDetailsModal` to `@/widgets/task-details-modal`, unified `ApiError` handling with retry filters, secured login/register from Open Redirect, safe STOMP WebSocket teardown handling in-flight handshakes and visibility changes.
    - **100% 4-Language i18n Parity**: Synchronized `ru`, `kk`, `en`, `zh` for labels, otp, settings google/telegram, billing stats. Zero hardcoded UI strings, zero Cyrillic characters in Chinese translations.
 
-2. **Full Automated Test Coverage & N+1 Optimization Across Backend, Frontend & Microservices**:
+2. **Full Automated Test Coverage, Chunk Recovery & N+1 Optimization**:
    - Monolith Backend: 370 tests PASS (`./gradlew check`). All N+1 hotspots eliminated: `findClientsWithoutProfile`, `@EntityGraph` on invoices, `default_batch_fetch_size=50`, `SUBSELECT` and `@BatchSize` across collections.
    - Telegram Bot: 89 tests PASS (`./gradlew check`).
-   - Frontend: 198 tests PASS (25 files), `npx tsc -b` 0 errors, `npm run lint` 0 warnings.
+   - Frontend: 214 tests PASS (26 files), `npm run typecheck` 0 errors, `npm run lint` 0 warnings. 3-tier Vite chunk load recovery with anti-loop guard (`vite:preloadError`, `lazyWithRetry`, `ErrorBoundary`).
 
 ## NEXT: Roadmap
 - Billing & Payments (WebKassa / Kaspi Pay integration).
