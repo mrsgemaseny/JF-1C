@@ -19,6 +19,7 @@ import java.util.UUID;
 public class RefreshTokenService {
 
     private static final Logger log = LoggerFactory.getLogger(RefreshTokenService.class);
+    public static final int MAX_ACTIVE_SESSIONS_PER_USER = 5;
 
     private final RefreshTokenRepository refreshTokenRepository;
     private final long refreshTokenExpirationMs;
@@ -33,16 +34,24 @@ public class RefreshTokenService {
 
     @Transactional
     public RefreshToken create(User user) {
+        Instant now = Instant.now();
+        List<RefreshToken> activeTokens = refreshTokenRepository.findActiveByUserOrderByCreatedAtAsc(user, now);
+        if (activeTokens.size() >= MAX_ACTIVE_SESSIONS_PER_USER) {
+            int sessionsToRevoke = activeTokens.size() - MAX_ACTIVE_SESSIONS_PER_USER + 1;
+            for (int i = 0; i < sessionsToRevoke; i++) {
+                RefreshToken oldest = activeTokens.get(i);
+                refreshTokenRepository.revokeByFamilyId(oldest.getFamilyId(), now);
+            }
+        }
+
         String familyId = UUID.randomUUID().toString();
         RefreshToken newToken = new RefreshToken(
                 UUID.randomUUID().toString(),
                 user,
                 familyId,
-                Instant.now().plusMillis(refreshTokenExpirationMs)
+                now.plusMillis(refreshTokenExpirationMs)
         );
-        RefreshToken saved = refreshTokenRepository.save(newToken);
-        refreshTokenRepository.deleteAllByUserExceptId(user, saved.getId());
-        return saved;
+        return refreshTokenRepository.save(newToken);
     }
 
     /**

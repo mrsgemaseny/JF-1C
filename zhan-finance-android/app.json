@@ -1,0 +1,81 @@
+{
+  "expo": {
+    "name": "ZHAN FINANCE",
+    "slug": "zhan-finance-android",
+    "version": "1.1.0",
+    "orientation": "portrait",
+    "scheme": "zhanfinance",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "backgroundColor": "#0a0a0c",
+    "splash": {
+      "backgroundColor": "#0a0a0c",
+      "resizeMode": "contain"
+    },
+    "androidStatusBar": {
+      "backgroundColor": "#0a0a0c",
+      "barStyle": "light-content",
+      "translucent": false
+    },
+    "androidNavigationBar": {
+      "backgroundColor": "#0a0a0c",
+      "barStyle": "light-content"
+    },
+    "android": {
+      "package": "kz.zhanfinance.app",
+      "versionCode": 2,
+      "allowBackup": false,
+      "softwareKeyboardLayoutMode": "resize",
+      "adaptiveIcon": {
+        "backgroundColor": "#0a0a0c"
+      },
+      "permissions": [
+        "android.permission.INTERNET",
+        "android.permission.ACCESS_NETWORK_STATE",
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT",
+        "android.permission.VIBRATE",
+        "android.permission.RECEIVE_BOOT_COMPLETED"
+      ],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "zhanfinance.kz",
+              "pathPrefix": "/"
+            },
+            {
+              "scheme": "zhanfinance"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-secure-store",
+        {
+          "configureAndroidBackup": false,
+          "faceIDPermission": "Разрешите ZHAN FINANCE использовать биометрию для быстрого и безопасного входа."
+        }
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Разрешите ZHAN FINANCE использовать биометрию для защиты финансовых данных."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#10b981"
+        }
+      ]
+    ]
+  }
+}

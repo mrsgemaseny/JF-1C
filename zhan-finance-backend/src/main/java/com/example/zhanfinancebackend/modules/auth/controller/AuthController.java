@@ -143,8 +143,16 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ApiResponse<Void> logout(@CookieValue(name = "refreshToken", required = false) String refreshTokenCookie, HttpServletResponse httpServletResponse) {
-        authService.logout(refreshTokenCookie);
+    public ApiResponse<Void> logout(
+            @CookieValue(name = "refreshToken", required = false) String refreshTokenCookie,
+            @RequestBody(required = false) RefreshRequest request,
+            HttpServletResponse httpServletResponse
+    ) {
+        String tokenToRevoke = refreshTokenCookie;
+        if ((tokenToRevoke == null || tokenToRevoke.isBlank()) && request != null) {
+            tokenToRevoke = request.refreshToken();
+        }
+        authService.logout(tokenToRevoke);
         authCookieHelper.clearTokenCookies(httpServletResponse);
         return ApiResponse.success(null, "Успешный выход");
     }

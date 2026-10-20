@@ -9,6 +9,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -34,11 +35,13 @@ class RefreshTokenRotationTest {
     }
 
     @Test
-    @DisplayName("create() сохраняет новый токен с familyId и очищает прошлые токены пользователя")
-    void create_SavesNewTokenAndCleansUpOldTokens() {
+    @DisplayName("create() сохраняет новый токен с familyId и сохраняет параллельные сессии (до 5 устройств)")
+    void create_SavesNewTokenAndPreservesConcurrentSessionsBelowLimit() {
         RefreshToken tokenToReturn = new RefreshToken("new-token-uuid", testUser, UUID.randomUUID().toString(), Instant.now().plusSeconds(3600));
         tokenToReturn.setId(100L);
 
+        when(refreshTokenRepository.findActiveByUserOrderByCreatedAtAsc(eq(testUser), any(Instant.class)))
+                .thenReturn(List.of());
         when(refreshTokenRepository.save(any(RefreshToken.class))).thenReturn(tokenToReturn);
 
         RefreshToken result = refreshTokenService.create(testUser);
@@ -47,7 +50,30 @@ class RefreshTokenRotationTest {
         assertEquals("new-token-uuid", result.getToken());
         assertNotNull(result.getFamilyId());
         verify(refreshTokenRepository).save(any(RefreshToken.class));
-        verify(refreshTokenRepository).deleteAllByUserExceptId(testUser, 100L);
+        verify(refreshTokenRepository, never()).revokeByFamilyId(any(), any());
+    }
+
+    @Test
+    @DisplayName("create() при превышении лимита 5 активных сессий отзывает самую старую сессию")
+    void create_WhenExceedingMaxSessions_RevokesOldestFamily() {
+        Instant now = Instant.now();
+        List<RefreshToken> fiveActive = List.of(
+                new RefreshToken("t1", testUser, "fam-oldest", now.plusSeconds(3600)),
+                new RefreshToken("t2", testUser, "fam-2", now.plusSeconds(3600)),
+                new RefreshToken("t3", testUser, "fam-3", now.plusSeconds(3600)),
+                new RefreshToken("t4", testUser, "fam-4", now.plusSeconds(3600)),
+                new RefreshToken("t5", testUser, "fam-5", now.plusSeconds(3600))
+        );
+
+        when(refreshTokenRepository.findActiveByUserOrderByCreatedAtAsc(eq(testUser), any(Instant.class)))
+                .thenReturn(fiveActive);
+        when(refreshTokenRepository.save(any(RefreshToken.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        RefreshToken result = refreshTokenService.create(testUser);
+
+        assertNotNull(result);
+        verify(refreshTokenRepository).revokeByFamilyId(eq("fam-oldest"), any(Instant.class));
+        verify(refreshTokenRepository, never()).revokeByFamilyId(eq("fam-2"), any(Instant.class));
     }
 
     @Test

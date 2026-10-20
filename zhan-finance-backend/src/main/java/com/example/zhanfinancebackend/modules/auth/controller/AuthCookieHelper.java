@@ -40,6 +40,7 @@ public class AuthCookieHelper {
                     .maxAge(maxAge)
                     .build();
             response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
+            response.setHeader("X-Refresh-Token", authResponse.refreshToken());
         }
     }
 

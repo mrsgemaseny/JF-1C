@@ -303,12 +303,10 @@ public class AuthService {
 
     @Transactional
     public AuthResponse refresh(RefreshRequest request) {
-        RefreshToken refreshToken = refreshTokenService.verify(request.refreshToken());
-        User user = refreshToken.getUser();
+        RefreshToken rotatedToken = refreshTokenService.verify(request.refreshToken());
+        User user = rotatedToken.getUser();
 
-        RefreshToken newRefreshToken = refreshTokenService.create(user);
-
-        return response(user, newRefreshToken.getToken());
+        return response(user, rotatedToken.getToken());
     }
 
     @Transactional
