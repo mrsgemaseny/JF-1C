@@ -1,0 +1,6 @@
+# EAS Build ignore
+android/
+ios/
+.expo/
+node_modules/
+.npmrc
