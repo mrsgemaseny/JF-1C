@@ -8,11 +8,6 @@
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "backgroundColor": "#0a0a0c",
-    "extra": {
-      "eas": {
-        "projectId": "822ba755-68af-43a0-93d5-77f8364"
-      }
-    },
     "splash": {
       "backgroundColor": "#0a0a0c",
       "resizeMode": "contain"
@@ -87,6 +82,12 @@
       "expo-localization",
       "expo-sharing",
       "expo-status-bar"
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "ec469700-2b7a-49f4-91c5-b48653518117"
+      }
+    }
   }
 }
