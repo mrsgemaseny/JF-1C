@@ -5,12 +5,13 @@ import {
   ScrollView,
   View,
   Text,
+  TextInput,
   Image,
   Pressable,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react-native';
 import { useMobileAuth } from '@/features/auth/AuthContext';
-import { AppButton, AppInput, SurfaceCard } from '@/shared/ui/Primitives';
 import { ApiError } from '@/shared/api/http';
 import { haptics } from '@/shared/lib/haptics';
 
@@ -18,13 +19,15 @@ export default function LoginScreen() {
   const { t, i18n } = useTranslation();
   const { signIn, signUp, verifySecondFactor, pendingVerification } = useMobileAuth();
 
-  const [mode, setMode] = useState<'LOGIN' | 'REGISTER'>('LOGIN');
+  // Mode: LOGIN or REGISTER
+  const [isRegisterMode, setIsRegisterMode] = useState(false);
 
-  // Login & common fields
+  // Form fields
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
-  // Register fields
+  // Additional fields for registration
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [companyName, setCompanyName] = useState('');
@@ -71,7 +74,7 @@ export default function LoginScreen() {
     } catch (err) {
       haptics.error();
       setErrorMessage(
-        err instanceof ApiError ? err.message : 'Ошибка регистрации'
+        err instanceof ApiError ? err.message : 'Ошибка при регистрации'
       );
     } finally {
       setLoading(false);
@@ -98,211 +101,345 @@ export default function LoginScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      className="flex-1 bg-brand-beige"
+      className="flex-1 bg-[#F5F5DC]"
     >
       <ScrollView
-        contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: 20, paddingVertical: 24 }}
+        contentContainerStyle={{
+          flexGrow: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          paddingHorizontal: 16,
+          paddingVertical: 32,
+        }}
         keyboardShouldPersistTaps="handled"
       >
-        <SurfaceCard className="w-full max-w-md mx-auto">
-          {/* Header: Brand Logo & Language Switcher */}
-          <View className="flex-row items-center justify-between mb-6 pb-2 border-b border-[#00562D]/10">
+        <View className="w-full max-w-[420px] bg-white rounded-[32px] p-7 sm:p-9 border border-[#00562D]/10 shadow-xl shadow-black/5">
+          {/* Header: Logo and Language Pill */}
+          <View className="flex-row items-center justify-between mb-8">
             <Image
               source={require('@/../assets/logo.png')}
-              style={{ width: 140, height: 42 }}
+              style={{ width: 130, height: 38 }}
               resizeMode="contain"
             />
-            <View className="flex-row bg-[#F5F5DC] rounded-xl p-1 border border-[#00562D]/15">
-              {(['ru', 'kk', 'en'] as const).map((lang) => (
-                <Pressable
-                  key={lang}
-                  onPress={() => switchLanguage(lang)}
-                  className={`px-2.5 py-1 rounded-lg ${
-                    i18n.language.startsWith(lang) ? 'bg-[#00562D]' : ''
-                  }`}
-                >
-                  <Text
-                    className={`text-xs font-bold uppercase ${
-                      i18n.language.startsWith(lang) ? 'text-[#F5F5DC]' : 'text-[#00562D]/70'
+            <View className="flex-row items-center bg-[#f4f4f0] rounded-full p-1 border border-[#00562D]/10">
+              {[
+                { code: 'ru', label: 'RU' },
+                { code: 'kk', label: 'KZ' },
+                { code: 'en', label: 'EN' },
+                { code: 'zh', label: '中文' },
+              ].map((lang) => {
+                const active = i18n.language.startsWith(lang.code);
+                return (
+                  <Pressable
+                    key={lang.code}
+                    onPress={() => switchLanguage(lang.code)}
+                    className={`px-3 py-1 rounded-full ${
+                      active ? 'bg-[#00562D]' : 'bg-transparent'
                     }`}
                   >
-                    {lang}
-                  </Text>
-                </Pressable>
-              ))}
+                    <Text
+                      className={`text-[11px] font-bold ${
+                        active ? 'text-[#F5F5DC]' : 'text-[#00562D]/70'
+                      }`}
+                    >
+                      {lang.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
             </View>
           </View>
 
           {/* Titles */}
-          <View className="mb-5">
-            <Text className="text-2xl font-black uppercase text-[#00562D]">
+          <View className="mb-6">
+            <Text className="text-2xl sm:text-3xl font-black uppercase text-[#00562D] tracking-tight">
               {pendingVerification
                 ? t('auth.twoFactorTitle')
-                : mode === 'LOGIN'
-                  ? 'ВХОД В СИСТЕМУ'
-                  : 'РЕГИСТРАЦИЯ'}
+                : isRegisterMode
+                  ? 'РЕГИСТРАЦИЯ'
+                  : 'ВХОД В СИСТЕМУ'}
             </Text>
-            <Text className="text-sm font-medium text-[#00562D]/70 mt-1">
+            <Text className="text-sm font-medium text-[#00562D]/70 mt-1.5 leading-relaxed">
               {pendingVerification
                 ? t('auth.twoFactorSubtitle')
-                : mode === 'LOGIN'
-                  ? 'Корпоративная платформа ZHAN FINANCE'
-                  : 'Создание нового аккаунта'}
+                : isRegisterMode
+                  ? 'Заполните данные для создания личного кабинета'
+                  : 'Введите ваши данные для доступа к личному кабинету'}
             </Text>
           </View>
 
           {/* Error Banner */}
-          {errorMessage ? (
-            <View className="bg-red-500/10 border border-red-500/25 rounded-2xl p-3.5 mb-4">
+          {errorMessage && (
+            <View className="bg-red-50 border border-red-200 rounded-2xl p-3.5 mb-5">
               <Text className="text-xs font-semibold text-red-600">
                 {errorMessage}
               </Text>
             </View>
-          ) : null}
+          )}
 
-          {/* Mode Switch Tabs (Вход / Регистрация) */}
-          {!pendingVerification && (
-            <View className="flex-row bg-[#F5F5DC] rounded-2xl p-1.5 mb-5 border border-[#00562D]/15">
-              <Pressable
-                onPress={() => {
-                  haptics.light();
-                  setMode('LOGIN');
-                  setErrorMessage(null);
-                }}
-                className={`flex-1 py-2.5 rounded-xl items-center ${
-                  mode === 'LOGIN' ? 'bg-[#00562D] shadow-sm' : ''
-                }`}
-              >
-                <Text
-                  className={`text-xs font-bold uppercase tracking-wider ${
-                    mode === 'LOGIN' ? 'text-[#F5F5DC]' : 'text-[#00562D]/70'
-                  }`}
-                >
-                  Вход
+          {/* 2FA Form */}
+          {pendingVerification ? (
+            <View className="space-y-4">
+              <View className="mb-4">
+                <Text className="text-xs font-bold text-[#00562D] mb-2 uppercase tracking-wide">
+                  {t('auth.otpCode')}
                 </Text>
-              </Pressable>
+                <TextInput
+                  value={otpCode}
+                  onChangeText={setOtpCode}
+                  keyboardType="number-pad"
+                  maxLength={6}
+                  placeholder="000000"
+                  placeholderTextColor="#9ca3af"
+                  className="h-14 bg-white border border-[#00562D]/20 rounded-2xl px-4 text-base text-[#00562D] font-medium"
+                />
+              </View>
               <Pressable
-                onPress={() => {
-                  haptics.light();
-                  setMode('REGISTER');
-                  setErrorMessage(null);
-                }}
-                className={`flex-1 py-2.5 rounded-xl items-center ${
-                  mode === 'REGISTER' ? 'bg-[#00562D] shadow-sm' : ''
-                }`}
+                onPress={() => void handleVerifyOtp()}
+                disabled={loading || otpCode.trim().length < 6}
+                className="w-full h-14 bg-[#00562D] rounded-2xl flex-row items-center justify-center shadow-lg shadow-[#00562D]/15 active:bg-[#004222]"
               >
-                <Text
-                  className={`text-xs font-bold uppercase tracking-wider ${
-                    mode === 'REGISTER' ? 'text-[#F5F5DC]' : 'text-[#00562D]/70'
-                  }`}
-                >
-                  Регистрация
+                <Text className="text-[#F5F5DC] font-black uppercase tracking-wider text-base">
+                  {loading ? 'ПРОВЕРКА...' : t('auth.verifyButton')}
                 </Text>
               </Pressable>
             </View>
-          )}
-
-          {/* 2FA / OTP Step */}
-          {pendingVerification ? (
-            <>
-              <AppInput
-                label={t('auth.otpCode')}
-                value={otpCode}
-                onChangeText={setOtpCode}
-                keyboardType="number-pad"
-                maxLength={6}
-                placeholder="000000"
-              />
-              <AppButton
-                title={t('auth.verifyButton')}
-                onPress={() => {
-                  void handleVerifyOtp();
-                }}
-                loading={loading}
-                disabled={otpCode.trim().length < 6}
-              />
-            </>
-          ) : mode === 'LOGIN' ? (
+          ) : !isRegisterMode ? (
             /* Login Form */
-            <>
-              <AppInput
-                label={t('auth.email')}
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-                placeholder="name@company.kz"
-              />
-              <AppInput
-                label={t('auth.password')}
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                placeholder="••••••••"
-              />
-              <View className="mt-2">
-                <AppButton
-                  title={t('auth.signInButton')}
-                  onPress={() => {
-                    void handleLogin();
-                  }}
-                  loading={loading}
-                  disabled={!email.trim() || !password}
-                />
+            <View>
+              {/* Email */}
+              <View className="mb-4">
+                <Text className="text-xs font-bold text-[#00562D] mb-2 uppercase tracking-wide">
+                  Email <Text className="text-red-500">*</Text>
+                </Text>
+                <View className="h-14 bg-white border border-[#00562D]/20 rounded-2xl flex-row items-center px-4">
+                  <Mail color="#00562D" opacity={0.4} size={20} />
+                  <TextInput
+                    value={email}
+                    onChangeText={setEmail}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    placeholder="example@gmail.com"
+                    placeholderTextColor="#9ca3af"
+                    className="flex-1 ml-3 text-sm font-medium text-[#00562D]"
+                  />
+                </View>
               </View>
-            </>
+
+              {/* Password */}
+              <View className="mb-2">
+                <Text className="text-xs font-bold text-[#00562D] mb-2 uppercase tracking-wide">
+                  Пароль <Text className="text-red-500">*</Text>
+                </Text>
+                <View className="h-14 bg-white border border-[#00562D]/20 rounded-2xl flex-row items-center px-4">
+                  <Lock color="#00562D" opacity={0.4} size={20} />
+                  <TextInput
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry={!showPassword}
+                    placeholder="••••••••"
+                    placeholderTextColor="#9ca3af"
+                    className="flex-1 ml-3 text-sm font-medium text-[#00562D]"
+                  />
+                  <Pressable onPress={() => setShowPassword(!showPassword)} hitSlop={8}>
+                    {showPassword ? (
+                      <EyeOff color="#00562D" opacity={0.5} size={20} />
+                    ) : (
+                      <Eye color="#00562D" opacity={0.5} size={20} />
+                    )}
+                  </Pressable>
+                </View>
+              </View>
+
+              {/* Forgot password */}
+              <View className="flex-row justify-end mb-5">
+                <Pressable onPress={() => haptics.light()}>
+                  <Text className="text-xs font-bold text-[#00562D]/75">
+                    Забыли пароль?
+                  </Text>
+                </Pressable>
+              </View>
+
+              {/* Submit button */}
+              <Pressable
+                onPress={() => void handleLogin()}
+                disabled={loading || !email.trim() || !password}
+                className={`w-full h-14 bg-[#00562D] rounded-2xl flex-row items-center justify-center shadow-lg shadow-[#00562D]/15 active:bg-[#004222] ${
+                  !email.trim() || !password ? 'opacity-60' : ''
+                }`}
+              >
+                <Text className="text-[#F5F5DC] font-black uppercase tracking-wider text-base mr-2">
+                  {loading ? 'ВХОД...' : 'ВОЙТИ'}
+                </Text>
+                <ArrowRight color="#F5F5DC" size={18} />
+              </Pressable>
+
+              {/* Divider */}
+              <View className="flex-row items-center my-6">
+                <View className="flex-1 h-[1px] bg-[#00562D]/15" />
+                <Text className="px-3 text-xs font-semibold text-[#00562D]/50">
+                  или
+                </Text>
+                <View className="flex-1 h-[1px] bg-[#00562D]/15" />
+              </View>
+
+              {/* Google Button */}
+              <Pressable
+                onPress={() => haptics.light()}
+                className="w-full h-12 bg-white border border-[#00562D]/15 rounded-xl flex-row items-center justify-center active:bg-[#f9f9f6]"
+              >
+                <View className="w-5 h-5 mr-2.5 items-center justify-center">
+                  <Text className="font-bold text-base text-[#4285F4]">G</Text>
+                </View>
+                <Text className="text-sm font-semibold text-[#00562D]/85">
+                  Вход через аккаунт Google
+                </Text>
+              </Pressable>
+
+              {/* Switch to Register */}
+              <View className="flex-row items-center justify-center mt-6">
+                <Text className="text-xs font-medium text-[#00562D]/70">
+                  Нет учетной записи?{' '}
+                </Text>
+                <Pressable
+                  onPress={() => {
+                    haptics.light();
+                    setIsRegisterMode(true);
+                    setErrorMessage(null);
+                  }}
+                >
+                  <Text className="text-xs font-black text-[#00562D] underline">
+                    Зарегистрироваться
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
           ) : (
             /* Register Form */
-            <>
-              <AppInput
-                label="ФИО / Имя"
-                value={fullName}
-                onChangeText={setFullName}
-                placeholder="Иван Иванов"
-              />
-              <AppInput
-                label={t('auth.email')}
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-                placeholder="name@company.kz"
-              />
-              <AppInput
-                label="Телефон (необязательно)"
-                value={phone}
-                onChangeText={setPhone}
-                keyboardType="phone-pad"
-                placeholder="+7 (777) 000-00-00"
-              />
-              <AppInput
-                label="Компания (необязательно)"
-                value={companyName}
-                onChangeText={setCompanyName}
-                placeholder="ТОО Компания"
-              />
-              <AppInput
-                label={t('auth.password')}
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                placeholder="••••••••"
-              />
-              <View className="mt-2">
-                <AppButton
-                  title="Зарегистрироваться"
-                  onPress={() => {
-                    void handleRegister();
-                  }}
-                  loading={loading}
-                  disabled={!email.trim() || !password || !fullName.trim()}
+            <View>
+              {/* Full Name */}
+              <View className="mb-4">
+                <Text className="text-xs font-bold text-[#00562D] mb-2 uppercase tracking-wide">
+                  ФИО / Имя <Text className="text-red-500">*</Text>
+                </Text>
+                <TextInput
+                  value={fullName}
+                  onChangeText={setFullName}
+                  placeholder="Иван Иванов"
+                  placeholderTextColor="#9ca3af"
+                  className="h-14 bg-white border border-[#00562D]/20 rounded-2xl px-4 text-sm font-medium text-[#00562D]"
                 />
               </View>
-            </>
+
+              {/* Email */}
+              <View className="mb-4">
+                <Text className="text-xs font-bold text-[#00562D] mb-2 uppercase tracking-wide">
+                  Email <Text className="text-red-500">*</Text>
+                </Text>
+                <View className="h-14 bg-white border border-[#00562D]/20 rounded-2xl flex-row items-center px-4">
+                  <Mail color="#00562D" opacity={0.4} size={20} />
+                  <TextInput
+                    value={email}
+                    onChangeText={setEmail}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    placeholder="example@gmail.com"
+                    placeholderTextColor="#9ca3af"
+                    className="flex-1 ml-3 text-sm font-medium text-[#00562D]"
+                  />
+                </View>
+              </View>
+
+              {/* Phone */}
+              <View className="mb-4">
+                <Text className="text-xs font-bold text-[#00562D] mb-2 uppercase tracking-wide">
+                  Телефон
+                </Text>
+                <TextInput
+                  value={phone}
+                  onChangeText={setPhone}
+                  keyboardType="phone-pad"
+                  placeholder="+7 (777) 000-00-00"
+                  placeholderTextColor="#9ca3af"
+                  className="h-14 bg-white border border-[#00562D]/20 rounded-2xl px-4 text-sm font-medium text-[#00562D]"
+                />
+              </View>
+
+              {/* Company */}
+              <View className="mb-4">
+                <Text className="text-xs font-bold text-[#00562D] mb-2 uppercase tracking-wide">
+                  Компания
+                </Text>
+                <TextInput
+                  value={companyName}
+                  onChangeText={setCompanyName}
+                  placeholder="ТОО Компания"
+                  placeholderTextColor="#9ca3af"
+                  className="h-14 bg-white border border-[#00562D]/20 rounded-2xl px-4 text-sm font-medium text-[#00562D]"
+                />
+              </View>
+
+              {/* Password */}
+              <View className="mb-5">
+                <Text className="text-xs font-bold text-[#00562D] mb-2 uppercase tracking-wide">
+                  Пароль <Text className="text-red-500">*</Text>
+                </Text>
+                <View className="h-14 bg-white border border-[#00562D]/20 rounded-2xl flex-row items-center px-4">
+                  <Lock color="#00562D" opacity={0.4} size={20} />
+                  <TextInput
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry={!showPassword}
+                    placeholder="••••••••"
+                    placeholderTextColor="#9ca3af"
+                    className="flex-1 ml-3 text-sm font-medium text-[#00562D]"
+                  />
+                  <Pressable onPress={() => setShowPassword(!showPassword)} hitSlop={8}>
+                    {showPassword ? (
+                      <EyeOff color="#00562D" opacity={0.5} size={20} />
+                    ) : (
+                      <Eye color="#00562D" opacity={0.5} size={20} />
+                    )}
+                  </Pressable>
+                </View>
+              </View>
+
+              {/* Register button */}
+              <Pressable
+                onPress={() => void handleRegister()}
+                disabled={loading || !email.trim() || !password || !fullName.trim()}
+                className={`w-full h-14 bg-[#00562D] rounded-2xl flex-row items-center justify-center shadow-lg shadow-[#00562D]/15 active:bg-[#004222] ${
+                  !email.trim() || !password || !fullName.trim() ? 'opacity-60' : ''
+                }`}
+              >
+                <Text className="text-[#F5F5DC] font-black uppercase tracking-wider text-base mr-2">
+                  {loading ? 'РЕГИСТРАЦИЯ...' : 'ЗАРЕГИСТРИРОВАТЬСЯ'}
+                </Text>
+                <ArrowRight color="#F5F5DC" size={18} />
+              </Pressable>
+
+              {/* Switch to Login */}
+              <View className="flex-row items-center justify-center mt-6">
+                <Text className="text-xs font-medium text-[#00562D]/70">
+                  Уже есть аккаунт?{' '}
+                </Text>
+                <Pressable
+                  onPress={() => {
+                    haptics.light();
+                    setIsRegisterMode(false);
+                    setErrorMessage(null);
+                  }}
+                >
+                  <Text className="text-xs font-black text-[#00562D] underline">
+                    Войти
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
           )}
-        </SurfaceCard>
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
