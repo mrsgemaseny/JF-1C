@@ -11,7 +11,10 @@ function createStore(): KeyValueStore {
     const { MMKV } = require('react-native-mmkv') as {
       MMKV: new (config: { id: string }) => KeyValueStore;
     };
-    return new MMKV({ id: 'zhan-finance-mmkv-cache' });
+    const store = new MMKV({ id: 'zhan-finance-mmkv-cache' });
+    // Verify native JSI binding works (fails safely in Expo Go without crashing)
+    store.getString('__probe__');
+    return store;
   } catch {
     const fallback = new Map<string, string>();
     return {
@@ -33,14 +36,26 @@ export const mmkv = createStore();
 
 export const mmkvSyncStorage = {
   getItem: (key: string): string | null => {
-    const value = mmkv.getString(key);
-    return value === undefined ? null : value;
+    try {
+      const value = mmkv.getString(key);
+      return value === undefined ? null : value;
+    } catch {
+      return null;
+    }
   },
   setItem: (key: string, value: string): void => {
-    mmkv.set(key, value);
+    try {
+      mmkv.set(key, value);
+    } catch {
+      // safe fallback
+    }
   },
   removeItem: (key: string): void => {
-    mmkv.delete(key);
+    try {
+      mmkv.delete(key);
+    } catch {
+      // safe fallback
+    }
   },
 };
 
@@ -55,15 +70,19 @@ export const queryCachePersister = {
     }
   },
   restoreClient: async <T = unknown>(): Promise<T | undefined> => {
-    const raw = mmkvSyncStorage.getItem(CACHE_KEY);
-    if (!raw) return undefined;
     try {
+      const raw = mmkvSyncStorage.getItem(CACHE_KEY);
+      if (!raw) return undefined;
       return JSON.parse(raw) as T;
     } catch {
       return undefined;
     }
   },
   removeClient: async (): Promise<void> => {
-    mmkvSyncStorage.removeItem(CACHE_KEY);
+    try {
+      mmkvSyncStorage.removeItem(CACHE_KEY);
+    } catch {
+      // safe fallback
+    }
   },
 };

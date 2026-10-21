@@ -93,14 +93,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return;
         }
 
-        // 2. Silent background token rotation & profile verification
-        const refreshStatus = await executeTokenRefreshSingleFlight();
+        // 2. Silent background token rotation & profile verification with strict 3s timeout
+        const refreshPromise = executeTokenRefreshSingleFlight();
+        const timeoutPromise = new Promise<'TIMEOUT'>((resolve) => {
+          setTimeout(() => resolve('TIMEOUT'), 3000);
+        });
+
+        const refreshStatus = await Promise.race([refreshPromise, timeoutPromise]);
         if (refreshStatus === 'REFRESHED') {
-          const freshProfile = await authMobileApi.getMe();
-          const mapped = mapResponseToUser(freshProfile);
-          setUser(mapped);
-          await secureAuthStorage.setCachedUserJson(JSON.stringify(mapped));
-          stompManager.start(mapped.userId);
+          try {
+            const freshProfile = await authMobileApi.getMe();
+            const mapped = mapResponseToUser(freshProfile);
+            setUser(mapped);
+            await secureAuthStorage.setCachedUserJson(JSON.stringify(mapped));
+            stompManager.start(mapped.userId);
+          } catch {
+            // Keep restored user if getMe fails
+          }
         }
       } catch {
         // Offline or transient error: keep cached user active!
