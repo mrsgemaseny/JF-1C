@@ -1,4 +1,4 @@
-import { Tabs } from 'expo-router';
+import { Tabs, Redirect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import {
   LayoutDashboard,
@@ -13,6 +13,11 @@ import { useMobileAuth } from '@/features/auth/AuthContext';
 export default function AppTabLayout() {
   const { t } = useTranslation();
   const { user } = useMobileAuth();
+
+  if (!user) {
+    return <Redirect href="/(auth)/login" />;
+  }
+
   const role = user?.role ?? 'CLIENT';
   const showBilling = role === 'CLIENT' || role === 'ADMIN';
 

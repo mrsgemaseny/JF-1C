@@ -43,46 +43,71 @@ function NavigationAndBiometricGuard() {
     }
   }, [user, isHydrating, segments, router]);
 
-  if (isHydrating) {
-    return (
-      <View className="flex-1 bg-brand-beige items-center justify-center">
-        <ActivityIndicator size="large" color="#00562D" />
-        <Text className="text-xs text-brand-green/70 mt-3 font-medium">{t('common.loading')}</Text>
-      </View>
-    );
-  }
-
-  if (user && isBiometricLocked) {
-    return (
-      <View className="flex-1 bg-brand-beige items-center justify-center px-6">
-        <SurfaceCard className="w-full">
-          <Text className="text-lg font-black uppercase text-brand-green mb-1">
-            ZHAN FINANCE
-          </Text>
-          <Text className="text-sm text-brand-green/70 mb-5">
-            {t('common.biometricPrompt')}
-          </Text>
-          <AppButton
-            title={t('common.unlockWithBiometrics')}
-            onPress={() => {
-              void unlockBiometrics();
-            }}
-          />
-        </SurfaceCard>
-      </View>
-    );
-  }
-
   return (
     <SafeAreaView className="flex-1 bg-brand-beige" edges={['top', 'left', 'right']}>
       <OfflineBanner isOnline={isOnline} />
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          contentStyle: { backgroundColor: '#F5F5DC' },
-          animation: 'fade',
-        }}
-      />
+      <View className="flex-1">
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: '#F5F5DC' },
+            animation: 'fade',
+          }}
+        />
+
+        {isHydrating && (
+          <View
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: '#F5F5DC',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 9999,
+            }}
+          >
+            <ActivityIndicator size="large" color="#00562D" />
+            <Text className="text-xs text-brand-green/70 mt-3 font-medium">
+              {t('common.loading')}
+            </Text>
+          </View>
+        )}
+
+        {!isHydrating && user && isBiometricLocked && (
+          <View
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: '#F5F5DC',
+              alignItems: 'center',
+              justifyContent: 'center',
+              paddingHorizontal: 24,
+              zIndex: 9999,
+            }}
+          >
+            <SurfaceCard className="w-full">
+              <Text className="text-lg font-black uppercase text-brand-green mb-1">
+                ZHAN FINANCE
+              </Text>
+              <Text className="text-sm text-brand-green/70 mb-5">
+                {t('common.biometricPrompt')}
+              </Text>
+              <AppButton
+                title={t('common.unlockWithBiometrics')}
+                onPress={() => {
+                  void unlockBiometrics();
+                }}
+              />
+            </SurfaceCard>
+          </View>
+        )}
+      </View>
     </SafeAreaView>
   );
 }
