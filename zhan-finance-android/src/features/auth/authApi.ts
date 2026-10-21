@@ -24,11 +24,27 @@ export interface AuthResponse {
   isPendingApproval?: boolean;
 }
 
+export interface RegisterRequest {
+  fullName: string;
+  email: string;
+  password: string;
+  role?: 'CLIENT' | 'EMPLOYEE';
+  phone?: string;
+  companyName?: string;
+}
+
 export const authMobileApi = {
   login(email: string, password: string): Promise<AuthResponse> {
     return apiRequest<AuthResponse>('/api/v1/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
+    });
+  },
+
+  register(payload: RegisterRequest): Promise<AuthResponse> {
+    return apiRequest<AuthResponse>('/api/v1/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({ ...payload, role: payload.role ?? 'CLIENT' }),
     });
   },
 

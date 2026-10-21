@@ -38,6 +38,7 @@ interface AuthContextValue {
   isBiometricLocked: boolean;
   pendingVerification: PendingVerificationState | null;
   signIn: (email: string, password: string) => Promise<void>;
+  signUp: (payload: { fullName: string; email: string; password: string; phone?: string; companyName?: string }) => Promise<void>;
   verifySecondFactor: (code: string) => Promise<void>;
   unlockBiometrics: () => Promise<boolean>;
   signOut: () => Promise<void>;
@@ -151,6 +152,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             type: '2FA',
             preAuthToken: res.preAuthToken,
             email: email.trim(),
+          });
+          return;
+        }
+        await persistAuthenticatedSession(res);
+      },
+
+      async signUp(payload: { fullName: string; email: string; password: string; phone?: string; companyName?: string }) {
+        const res = await authMobileApi.register(payload);
+        if (res.requiresEmailOtp && res.preAuthToken) {
+          setPendingVerification({
+            type: 'EMAIL_OTP',
+            preAuthToken: res.preAuthToken,
+            email: payload.email.trim(),
           });
           return;
         }

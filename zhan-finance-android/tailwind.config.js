@@ -5,14 +5,17 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        canvas: '#0a0a0c',
-        surface: '#18181b',
-        'surface-elevated': '#202024',
-        border: 'rgba(255, 255, 255, 0.08)',
+        'brand-green': '#00562D',
+        'brand-beige': '#F5F5DC',
+        'brand-accent': '#4a7c59',
+        canvas: '#F5F5DC',
+        surface: '#FFFFFF',
+        'surface-elevated': '#FAFAFA',
+        border: 'rgba(0, 86, 45, 0.1)',
         brand: {
-          DEFAULT: '#10b981',
-          dark: '#059669',
-          muted: 'rgba(16, 185, 129, 0.14)',
+          DEFAULT: '#00562D',
+          dark: '#004222',
+          muted: 'rgba(0, 86, 45, 0.1)',
         },
       },
     },

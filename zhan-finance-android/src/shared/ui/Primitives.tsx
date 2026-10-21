@@ -26,19 +26,19 @@ export function AppButton({
 }: ButtonProps) {
   const bgClass =
     variant === 'primary'
-      ? 'bg-emerald-500 active:bg-emerald-600'
+      ? 'bg-[#00562D] active:bg-[#004222]'
       : variant === 'danger'
-        ? 'bg-red-500/15 border border-red-500/30 active:bg-red-500/25'
+        ? 'bg-red-500/10 border border-red-500/20 active:bg-red-500/20'
         : variant === 'secondary'
-          ? 'bg-zinc-800 border border-white/10 active:bg-zinc-700'
-          : 'bg-transparent active:bg-white/5';
+          ? 'bg-[#F5F5DC] border border-[#00562D]/15 active:bg-[#EBEBC8]'
+          : 'bg-transparent active:bg-black/5';
 
   const textClass =
     variant === 'primary'
-      ? 'text-zinc-950 font-semibold'
+      ? 'text-[#F5F5DC] font-bold uppercase tracking-wider'
       : variant === 'danger'
-        ? 'text-red-400 font-semibold'
-        : 'text-zinc-100 font-medium';
+        ? 'text-red-600 font-semibold'
+        : 'text-[#00562D] font-bold';
 
   return (
     <Pressable
@@ -47,14 +47,14 @@ export function AppButton({
         haptics.light();
         onPress();
       }}
-      className={`min-h-[46px] px-4 py-3 rounded-md flex-row items-center justify-center ${bgClass} ${
-        disabled ? 'opacity-50' : ''
+      className={`min-h-[50px] px-5 py-3.5 rounded-2xl flex-row items-center justify-center shadow-md shadow-[#00562D]/10 ${bgClass} ${
+        disabled ? 'opacity-60' : ''
       }`}
     >
       {loading ? (
         <ActivityIndicator
           size="small"
-          color={variant === 'primary' ? '#0a0a0c' : '#f4f4f5'}
+          color={variant === 'primary' ? '#F5F5DC' : '#00562D'}
         />
       ) : (
         <Text className={`text-sm ${textClass}`}>{title}</Text>
@@ -66,7 +66,7 @@ export function AppButton({
 export function SurfaceCard({ children, className = '', ...rest }: ViewProps & { className?: string }) {
   return (
     <View
-      className={`bg-surface rounded-lg border border-white/10 p-4 ${className}`}
+      className={`bg-white rounded-3xl border border-[#00562D]/10 p-6 shadow-xl shadow-black/5 ${className}`}
       {...rest}
     >
       {children}
@@ -81,15 +81,15 @@ interface AppInputProps extends TextInputProps {
 
 export function AppInput({ label, error, ...props }: AppInputProps) {
   return (
-    <View className="mb-3.5">
-      <Text className="text-xs font-medium text-zinc-400 mb-1.5">{label}</Text>
+    <View className="mb-4">
+      <Text className="text-xs font-bold text-[#00562D]/75 uppercase tracking-wide mb-1.5">{label}</Text>
       <TextInput
-        placeholderTextColor="#71717a"
-        className="min-h-[46px] bg-surface-elevated border border-white/10 rounded-md px-3.5 py-2.5 text-sm text-zinc-100"
+        placeholderTextColor="#9ca3af"
+        className="min-h-[48px] bg-white border border-[#00562D]/20 focus:border-[#00562D] rounded-xl px-4 py-3 text-sm text-[#00562D] font-medium"
         {...props}
       />
       {error ? (
-        <Text className="text-xs text-red-400 mt-1">{error}</Text>
+        <Text className="text-xs text-red-600 mt-1.5 font-medium">{error}</Text>
       ) : null}
     </View>
   );

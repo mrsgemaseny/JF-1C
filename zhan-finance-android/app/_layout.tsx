@@ -2,7 +2,7 @@ import '../global.css';
 import '@/shared/i18n/i18n';
 import { useEffect, useState } from 'react';
 import { View, Text, ActivityIndicator } from 'react-native';
-import { Slot, useRouter, useSegments } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
@@ -40,21 +40,21 @@ function NavigationAndBiometricGuard() {
 
   if (isHydrating) {
     return (
-      <View className="flex-1 bg-canvas items-center justify-center">
-        <ActivityIndicator size="large" color="#10b981" />
-        <Text className="text-xs text-zinc-400 mt-3">{t('common.loading')}</Text>
+      <View className="flex-1 bg-brand-beige items-center justify-center">
+        <ActivityIndicator size="large" color="#00562D" />
+        <Text className="text-xs text-brand-green/70 mt-3 font-medium">{t('common.loading')}</Text>
       </View>
     );
   }
 
   if (user && isBiometricLocked) {
     return (
-      <View className="flex-1 bg-canvas items-center justify-center px-6">
+      <View className="flex-1 bg-brand-beige items-center justify-center px-6">
         <SurfaceCard className="w-full">
-          <Text className="text-lg font-semibold text-zinc-100 mb-1">
+          <Text className="text-lg font-black uppercase text-brand-green mb-1">
             ZHAN FINANCE
           </Text>
-          <Text className="text-sm text-zinc-400 mb-5">
+          <Text className="text-sm text-brand-green/70 mb-5">
             {t('common.biometricPrompt')}
           </Text>
           <AppButton
@@ -69,9 +69,12 @@ function NavigationAndBiometricGuard() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-canvas" edges={['top', 'left', 'right']}>
+    <SafeAreaView className="flex-1 bg-brand-beige" edges={['top', 'left', 'right']}>
       <OfflineBanner isOnline={isOnline} />
-      <Slot />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(app)" />
+      </Stack>
     </SafeAreaView>
   );
 }
@@ -84,7 +87,7 @@ export default function RootLayout() {
         persistOptions={{ persister: queryCachePersister }}
       >
         <AuthProvider>
-          <StatusBar style="light" />
+          <StatusBar style="dark" />
           <NavigationAndBiometricGuard />
         </AuthProvider>
       </PersistQueryClientProvider>
