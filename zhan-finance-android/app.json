@@ -5,21 +5,21 @@
     "version": "1.1.0",
     "orientation": "portrait",
     "scheme": "zhanfinance",
-    "userInterfaceStyle": "dark",
+    "userInterfaceStyle": "light",
     "newArchEnabled": true,
-    "backgroundColor": "#0a0a0c",
+    "backgroundColor": "#F5F5DC",
     "splash": {
-      "backgroundColor": "#0a0a0c",
+      "backgroundColor": "#F5F5DC",
       "resizeMode": "contain"
     },
     "androidStatusBar": {
-      "backgroundColor": "#0a0a0c",
-      "barStyle": "light-content",
+      "backgroundColor": "#F5F5DC",
+      "barStyle": "dark-content",
       "translucent": false
     },
     "androidNavigationBar": {
-      "backgroundColor": "#0a0a0c",
-      "barStyle": "light-content"
+      "backgroundColor": "#F5F5DC",
+      "barStyle": "dark-content"
     },
     "android": {
       "package": "kz.zhanfinance.app",

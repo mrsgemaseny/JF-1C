@@ -22,21 +22,21 @@ export interface MobileTaskDto {
 
 export const taskMobileApi = {
   getTasks(): Promise<MobileTaskDto[]> {
-    return apiRequest<MobileTaskDto[]>('/api/v1/tasks');
+    return apiRequest<MobileTaskDto[]>('/api/v1/crm/tasks');
   },
 
   getTaskPool(): Promise<MobileTaskDto[]> {
-    return apiRequest<MobileTaskDto[]>('/api/v1/tasks/pool');
+    return apiRequest<MobileTaskDto[]>('/api/v1/crm/tasks?unassigned=true');
   },
 
   claimFromPool(taskId: number): Promise<MobileTaskDto> {
-    return apiRequest<MobileTaskDto>(`/api/v1/tasks/${taskId}/claim`, {
+    return apiRequest<MobileTaskDto>(`/api/v1/crm/tasks/${taskId}/claim`, {
       method: 'POST',
     });
   },
 
   async addTaskComment(taskId: number, content: string): Promise<{ queuedOffline: boolean }> {
-    const path = `/api/v1/tasks/${taskId}/comments`;
+    const path = `/api/v1/crm/tasks/${taskId}/comments`;
     try {
       await apiRequest(path, {
         method: 'POST',

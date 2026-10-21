@@ -366,6 +366,13 @@ export const resources = {
 
 export type SupportedLocale = keyof typeof resources;
 
+export const LOCALES: { code: SupportedLocale; label: string }[] = [
+  { code: 'ru', label: 'Русский' },
+  { code: 'kk', label: 'Қазақша' },
+  { code: 'en', label: 'English' },
+  { code: 'zh', label: '中文' },
+];
+
 const savedLanguage = (mmkvSyncStorage.getItem(LANG_STORAGE_KEY) || 'ru') as SupportedLocale;
 setApiLanguage(savedLanguage);
 

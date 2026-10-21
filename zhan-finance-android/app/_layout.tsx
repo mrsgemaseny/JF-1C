@@ -23,6 +23,11 @@ function NavigationAndBiometricGuard() {
   useEffect(() => {
     const unsubscribe = bindNetworkStatusListener((online) => {
       setIsOnline(online);
+      if (online) {
+        import('@/shared/api/http').then(({ flushOfflineMutationQueue }) => {
+          void flushOfflineMutationQueue();
+        });
+      }
     });
     return unsubscribe;
   }, []);

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, Pressable, FlatList } from 'react-native';
+import { View, Text, Pressable, FlatList, Alert } from 'react-native';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import {
@@ -11,6 +11,7 @@ import { queryClient } from '@/shared/api/queryClient';
 import { useMobileAuth } from '@/features/auth/AuthContext';
 import { AppButton, StatusBadge, SurfaceCard } from '@/shared/ui/Primitives';
 import { haptics } from '@/shared/lib/haptics';
+import { ApiError } from '@/shared/api/http';
 
 const STAGE_KEYS: TaskStageKey[] = ['ALL', 'NEW', 'IN_PROGRESS', 'REVIEW', 'DONE'];
 
@@ -42,6 +43,11 @@ export default function TasksScreen() {
       haptics.success();
       void queryClient.invalidateQueries({ queryKey: ['tasks'] });
     },
+    onError: (err) => {
+      haptics.error();
+      const msg = err instanceof ApiError ? err.message : 'Не удалось взять задачу из пула';
+      Alert.alert('Ошибка', msg);
+    },
   });
 
   const rawTasks: MobileTaskDto[] =
@@ -53,25 +59,25 @@ export default function TasksScreen() {
       : rawTasks.filter((item) => item.stageCode === selectedStage);
 
   return (
-    <View className="flex-1 bg-canvas px-4 pt-4">
-      <View className="flex-row items-center justify-between mb-3">
-        <Text className="text-xl font-bold text-zinc-100">
+    <View className="flex-1 bg-brand-beige px-4 pt-4">
+      <View className="flex-row items-center justify-between mb-4">
+        <Text className="text-2xl font-black uppercase text-[#00562D]">
           {activeTab === 'POOL' ? t('tasks.poolTitle') : t('tasks.title')}
         </Text>
         {canAccessPool ? (
-          <View className="flex-row bg-surface rounded-md border border-white/10 p-0.5">
+          <View className="flex-row bg-[#F5F5DC] rounded-xl border border-[#00562D]/15 p-1">
             <Pressable
               onPress={() => {
                 haptics.light();
                 setActiveTab('MY');
               }}
-              className={`px-3 py-1.5 rounded ${
-                activeTab === 'MY' ? 'bg-emerald-500' : ''
+              className={`px-3 py-1.5 rounded-lg ${
+                activeTab === 'MY' ? 'bg-[#00562D]' : ''
               }`}
             >
               <Text
-                className={`text-xs font-semibold ${
-                  activeTab === 'MY' ? 'text-zinc-950' : 'text-zinc-300'
+                className={`text-xs font-bold uppercase ${
+                  activeTab === 'MY' ? 'text-[#F5F5DC]' : 'text-[#00562D]/70'
                 }`}
               >
                 {t('nav.tasks')}
@@ -82,13 +88,13 @@ export default function TasksScreen() {
                 haptics.light();
                 setActiveTab('POOL');
               }}
-              className={`px-3 py-1.5 rounded ${
-                activeTab === 'POOL' ? 'bg-emerald-500' : ''
+              className={`px-3 py-1.5 rounded-lg ${
+                activeTab === 'POOL' ? 'bg-[#00562D]' : ''
               }`}
             >
               <Text
-                className={`text-xs font-semibold ${
-                  activeTab === 'POOL' ? 'text-zinc-950' : 'text-zinc-300'
+                className={`text-xs font-bold uppercase ${
+                  activeTab === 'POOL' ? 'text-[#F5F5DC]' : 'text-[#00562D]/70'
                 }`}
               >
                 {t('nav.pool')}
@@ -109,15 +115,15 @@ export default function TasksScreen() {
                   haptics.light();
                   setSelectedStage(stage);
                 }}
-                className={`px-2.5 py-1.5 rounded-md border ${
+                className={`px-3 py-1.5 rounded-xl border ${
                   active
-                    ? 'bg-emerald-500/15 border-emerald-500/40'
-                    : 'bg-surface border-white/10'
+                    ? 'bg-[#00562D] border-[#00562D]'
+                    : 'bg-white border-[#00562D]/15'
                 }`}
               >
                 <Text
-                  className={`text-xs font-medium ${
-                    active ? 'text-emerald-400' : 'text-zinc-400'
+                  className={`text-xs font-bold ${
+                    active ? 'text-[#F5F5DC]' : 'text-[#00562D]/75'
                   }`}
                 >
                   {t(`tasks.stages.${stage}`)}
@@ -141,14 +147,14 @@ export default function TasksScreen() {
         }}
         ListEmptyComponent={
           <SurfaceCard>
-            <Text className="text-sm text-zinc-400 text-center">
+            <Text className="text-sm font-medium text-[#00562D]/70 text-center">
               {t('tasks.emptyTasks')}
             </Text>
           </SurfaceCard>
         }
         renderItem={({ item }) => (
           <SurfaceCard className="mb-3">
-            <View className="flex-row items-center justify-between mb-1.5">
+            <View className="flex-row items-center justify-between mb-2">
               <StatusBadge label={item.stageName} tone="emerald" />
               <StatusBadge
                 label={t(`tasks.priority.${item.priority}`)}
@@ -159,11 +165,11 @@ export default function TasksScreen() {
                 }
               />
             </View>
-            <Text className="text-base font-semibold text-zinc-100">
+            <Text className="text-base font-bold text-[#00562D]">
               {item.title}
             </Text>
             {item.description ? (
-              <Text className="text-sm text-zinc-400 mt-1" numberOfLines={2}>
+              <Text className="text-sm font-medium text-[#00562D]/70 mt-1" numberOfLines={2}>
                 {item.description}
               </Text>
             ) : null}

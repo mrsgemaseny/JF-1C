@@ -1,4 +1,4 @@
-import { View, Text, FlatList } from 'react-native';
+import { View, Text, FlatList, Alert } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -10,6 +10,7 @@ import {
 import { queryClient } from '@/shared/api/queryClient';
 import { AppButton, StatusBadge, SurfaceCard } from '@/shared/ui/Primitives';
 import { haptics } from '@/shared/lib/haptics';
+import { ApiError } from '@/shared/api/http';
 
 function getToneForStatus(
   status: InvoiceStatus
@@ -35,7 +36,7 @@ export default function BillingScreen() {
   });
 
   const uploadReceiptMutation = useMutation({
-    mutationFn: async (invoiceId: number) => {
+    mutationFn: async ({ invoiceId, amount }: { invoiceId: number; amount: number }) => {
       const picked = await DocumentPicker.getDocumentAsync({
         type: ['application/pdf', 'image/*'],
         copyToCacheDirectory: true,
@@ -46,6 +47,7 @@ export default function BillingScreen() {
       const asset = picked.assets[0];
       await billingMobileApi.uploadReceipt(
         invoiceId,
+        amount,
         asset.uri,
         asset.name,
         asset.mimeType || 'application/pdf'
@@ -54,14 +56,20 @@ export default function BillingScreen() {
     onSuccess: () => {
       haptics.success();
       void queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      Alert.alert('Успех', 'Чек успешно отправлен на проверку');
+    },
+    onError: (err) => {
+      haptics.error();
+      const msg = err instanceof ApiError ? err.message : 'Ошибка при загрузке чека';
+      Alert.alert('Ошибка', msg);
     },
   });
 
   const invoices: MobileInvoiceDto[] = invoicesQuery.data ?? [];
 
   return (
-    <View className="flex-1 bg-canvas px-4 pt-4">
-      <Text className="text-xl font-bold text-zinc-100 mb-4">
+    <View className="flex-1 bg-brand-beige px-4 pt-4">
+      <Text className="text-2xl font-black uppercase text-[#00562D] mb-4">
         {t('billing.title')}
       </Text>
 
@@ -74,15 +82,15 @@ export default function BillingScreen() {
         }}
         ListEmptyComponent={
           <SurfaceCard>
-            <Text className="text-sm text-zinc-400 text-center">
+            <Text className="text-sm font-medium text-[#00562D]/70 text-center">
               {t('billing.emptyInvoices')}
             </Text>
           </SurfaceCard>
         }
         renderItem={({ item }) => (
           <SurfaceCard className="mb-3">
-            <View className="flex-row items-center justify-between mb-1.5">
-              <Text className="text-xs font-medium text-zinc-400">
+            <View className="flex-row items-center justify-between mb-2">
+              <Text className="text-base font-black text-[#00562D]">
                 {item.invoiceNumber}
               </Text>
               <StatusBadge
@@ -90,12 +98,17 @@ export default function BillingScreen() {
                 tone={getToneForStatus(item.status)}
               />
             </View>
-            <Text className="text-lg font-bold text-zinc-100">
-              {item.amount.toLocaleString('ru-KZ')} {item.currency || 'KZT'}
+            <Text className="text-2xl font-black text-[#00562D] my-1">
+              {item.amount.toLocaleString()} {item.currency}
             </Text>
             {item.description ? (
-              <Text className="text-sm text-zinc-400 mt-1">
+              <Text className="text-sm font-medium text-[#00562D]/70" numberOfLines={2}>
                 {item.description}
+              </Text>
+            ) : null}
+            {item.dueDate ? (
+              <Text className="text-xs font-semibold text-[#00562D]/60 mt-1">
+                {t('billing.dueDate')}: {new Date(item.dueDate).toLocaleDateString()}
               </Text>
             ) : null}
             {item.status === 'PENDING' || item.status === 'OVERDUE' ? (
@@ -104,7 +117,7 @@ export default function BillingScreen() {
                   title={t('billing.uploadReceipt')}
                   variant="secondary"
                   onPress={() => {
-                    uploadReceiptMutation.mutate(item.id);
+                    uploadReceiptMutation.mutate({ invoiceId: item.id, amount: item.amount });
                   }}
                   loading={uploadReceiptMutation.isPending}
                 />

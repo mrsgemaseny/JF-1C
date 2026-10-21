@@ -15,24 +15,27 @@ export interface MobileInvoiceDto {
 
 export const billingMobileApi = {
   getInvoices(): Promise<MobileInvoiceDto[]> {
-    return apiRequest<MobileInvoiceDto[]>('/api/v1/invoices');
+    return apiRequest<MobileInvoiceDto[]>('/api/v1/billing/invoices');
   },
 
   uploadReceipt(
     invoiceId: number,
+    amount: number,
     fileUri: string,
     fileName: string,
     mimeType: string
   ): Promise<void> {
     const formData = new FormData();
     formData.append('invoiceId', String(invoiceId));
+    formData.append('amount', String(amount));
+    formData.append('currency', 'KZT');
     formData.append('file', {
       uri: fileUri,
       name: fileName,
       type: mimeType,
     } as unknown as Blob);
 
-    return apiRequest<void>('/api/v1/payment-receipts', {
+    return apiRequest<void>('/api/v1/billing/receipts', {
       method: 'POST',
       body: formData,
     });

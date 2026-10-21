@@ -171,7 +171,8 @@ public class EmailOtpService {
         otp.setExpiresAt(now.plusMinutes(OTP_VALIDITY_MINUTES));
         otpRepository.save(otp);
 
-        boolean isDevOtp = smtpUsername == null || smtpUsername.isBlank() || "smtp.example.com".equalsIgnoreCase(smtpHost);
+        boolean isProd = environment != null && java.util.Arrays.asList(environment.getActiveProfiles()).contains("prod");
+        boolean isDevOtp = !isProd && (smtpUsername == null || smtpUsername.isBlank() || "smtp.example.com".equalsIgnoreCase(smtpHost));
         if (isDevOtp) {
             log.warn("=================================================================");
             log.warn(">>> [DEV RESEND OTP] Email: {} | Code: {} <<<", otp.getEmail(), newOtpCode);

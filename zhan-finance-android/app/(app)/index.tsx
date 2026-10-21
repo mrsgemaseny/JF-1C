@@ -27,7 +27,7 @@ export default function DashboardOverviewScreen() {
 
   return (
     <ScrollView
-      className="flex-1 bg-canvas px-4 pt-4"
+      className="flex-1 bg-brand-beige px-4 pt-4"
       refreshControl={
         <RefreshControl
           refreshing={tasksQuery.isRefetching || invoicesQuery.isRefetching}
@@ -35,35 +35,35 @@ export default function DashboardOverviewScreen() {
             void tasksQuery.refetch();
             void invoicesQuery.refetch();
           }}
-          tintColor="#10b981"
+          tintColor="#00562D"
         />
       }
     >
       <View className="mb-5">
-        <Text className="text-xs font-medium text-zinc-400">
+        <Text className="text-xs font-bold text-[#00562D]/70 uppercase tracking-wider">
           {user?.role ? t(`roles.${user.role}`) : ''}
         </Text>
-        <Text className="text-xl font-bold text-zinc-100 mt-0.5">
+        <Text className="text-2xl font-black text-[#00562D] mt-0.5">
           {user?.fullName || user?.email}
         </Text>
       </View>
 
-      <View className="flex-row gap-3 mb-4">
+      <View className="flex-row gap-3 mb-5">
         <SurfaceCard className="flex-1">
-          <Text className="text-xs text-zinc-400">{t('nav.tasks')}</Text>
-          <Text className="text-xl font-bold text-zinc-100 mt-1">
+          <Text className="text-xs font-bold uppercase text-[#00562D]/70">{t('nav.tasks')}</Text>
+          <Text className="text-2xl font-black text-[#00562D] mt-1">
             {tasks.length}
           </Text>
         </SurfaceCard>
         <SurfaceCard className="flex-1">
-          <Text className="text-xs text-zinc-400">{t('nav.billing')}</Text>
-          <Text className="text-xl font-bold text-emerald-400 mt-1">
+          <Text className="text-xs font-bold uppercase text-[#00562D]/70">{t('nav.billing')}</Text>
+          <Text className="text-2xl font-black text-[#00562D] mt-1">
             {pendingInvoices.length}
           </Text>
         </SurfaceCard>
       </View>
 
-      <Text className="text-base font-semibold text-zinc-100 mb-3">
+      <Text className="text-base font-black uppercase text-[#00562D] mb-3">
         {t('tasks.title')}
       </Text>
 
@@ -71,13 +71,13 @@ export default function DashboardOverviewScreen() {
         <SurfaceCard key={task.id} className="mb-3">
           <View className="flex-row items-center justify-between mb-1.5">
             <StatusBadge label={task.stageName} tone="emerald" />
-            <Text className="text-xs text-zinc-400">#{task.id}</Text>
+            <Text className="text-xs font-bold text-[#00562D]/60">#{task.id}</Text>
           </View>
-          <Text className="text-base font-semibold text-zinc-100">
+          <Text className="text-base font-bold text-[#00562D]">
             {task.title}
           </Text>
           {task.clientName ? (
-            <Text className="text-xs text-zinc-400 mt-1">{task.clientName}</Text>
+            <Text className="text-xs font-medium text-[#00562D]/70 mt-1">{task.clientName}</Text>
           ) : null}
         </SurfaceCard>
       ))}

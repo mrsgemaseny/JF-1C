@@ -35,8 +35,8 @@ export default function DocumentsScreen() {
   };
 
   return (
-    <View className="flex-1 bg-canvas px-4 pt-4">
-      <Text className="text-xl font-bold text-zinc-100 mb-4">
+    <View className="flex-1 bg-brand-beige px-4 pt-4">
+      <Text className="text-2xl font-black uppercase text-[#00562D] mb-4">
         {t('documents.title')}
       </Text>
 
@@ -49,17 +49,19 @@ export default function DocumentsScreen() {
         }}
         ListEmptyComponent={
           <SurfaceCard>
-            <Text className="text-sm text-zinc-400 text-center">
+            <Text className="text-sm font-medium text-[#00562D]/70 text-center">
               {t('documents.emptyDocuments')}
             </Text>
           </SurfaceCard>
         }
         renderItem={({ item }) => (
           <SurfaceCard className="mb-3">
-            <Text className="text-base font-semibold text-zinc-100">
+            <Text className="text-base font-bold text-[#00562D]">
               {item.title}
             </Text>
-            <Text className="text-xs text-zinc-400 mt-1">{item.fileName}</Text>
+            {item.fileName ? (
+              <Text className="text-xs font-semibold text-[#00562D]/60 mt-1">{item.fileName}</Text>
+            ) : null}
             <View className="mt-3">
               <AppButton
                 title={t('documents.shareDocument')}

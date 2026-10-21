@@ -50,8 +50,8 @@ export default function ChatScreen() {
 
   if (!selectedPartner) {
     return (
-      <View className="flex-1 bg-canvas px-4 pt-4">
-        <Text className="text-xl font-bold text-zinc-100 mb-4">
+      <View className="flex-1 bg-brand-beige px-4 pt-4">
+        <Text className="text-2xl font-black uppercase text-[#00562D] mb-4">
           {t('chat.title')}
         </Text>
         <FlatList
@@ -63,7 +63,7 @@ export default function ChatScreen() {
           }}
           ListEmptyComponent={
             <SurfaceCard>
-              <Text className="text-sm text-zinc-400 text-center">
+              <Text className="text-sm font-medium text-[#00562D]/70 text-center">
                 {t('chat.emptyChat')}
               </Text>
             </SurfaceCard>
@@ -77,7 +77,7 @@ export default function ChatScreen() {
             >
               <SurfaceCard className="mb-3">
                 <View className="flex-row items-center justify-between">
-                  <Text className="text-base font-semibold text-zinc-100">
+                  <Text className="text-base font-bold text-[#00562D]">
                     {item.partnerName}
                   </Text>
                   {item.unreadCount > 0 ? (
@@ -86,7 +86,7 @@ export default function ChatScreen() {
                 </View>
                 {item.lastMessage ? (
                   <Text
-                    className="text-sm text-zinc-400 mt-1"
+                    className="text-sm font-medium text-[#00562D]/70 mt-1"
                     numberOfLines={1}
                   >
                     {item.lastMessage}
@@ -103,17 +103,17 @@ export default function ChatScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      className="flex-1 bg-canvas px-4 pt-4"
+      className="flex-1 bg-brand-beige px-4 pt-4"
     >
-      <View className="flex-row items-center justify-between pb-3 border-b border-white/10 mb-3">
-        <Text className="text-lg font-bold text-zinc-100">
+      <View className="flex-row items-center justify-between pb-3 border-b border-[#00562D]/15 mb-3">
+        <Text className="text-lg font-bold text-[#00562D]">
           {selectedPartner.partnerName}
         </Text>
         <Pressable
           onPress={() => setSelectedPartner(null)}
-          className="px-3 py-1.5 bg-surface rounded border border-white/10"
+          className="px-3 py-1.5 bg-white rounded-xl border border-[#00562D]/15"
         >
-          <Text className="text-xs font-medium text-zinc-300">
+          <Text className="text-xs font-bold uppercase text-[#00562D]/75">
             {t('common.cancel')}
           </Text>
         </Pressable>
@@ -127,25 +127,27 @@ export default function ChatScreen() {
           const isIncoming = item.senderId === selectedPartner.partnerId;
           return (
             <View
-              className={`mb-2.5 max-w-[82%] rounded-lg p-3 ${
+              className={`mb-2.5 max-w-[82%] rounded-2xl p-3.5 ${
                 isIncoming
-                  ? 'self-start bg-surface border border-white/10'
-                  : 'self-end bg-emerald-500/20 border border-emerald-500/40'
+                  ? 'self-start bg-white border border-[#00562D]/10'
+                  : 'self-end bg-[#00562D] shadow-sm'
               }`}
             >
-              <Text className="text-sm text-zinc-100">{item.content}</Text>
+              <Text className={`text-sm font-medium ${isIncoming ? 'text-[#00562D]' : 'text-[#F5F5DC]'}`}>
+                {item.content}
+              </Text>
             </View>
           );
         }}
       />
 
-      <View className="flex-row items-center gap-2 py-3 border-t border-white/10">
+      <View className="flex-row items-center gap-2 py-3 border-t border-[#00562D]/15">
         <TextInput
           value={draft}
           onChangeText={setDraft}
           placeholder={t('chat.placeholder')}
-          placeholderTextColor="#71717a"
-          className="flex-1 min-h-[44px] bg-surface-elevated border border-white/10 rounded-md px-3.5 text-sm text-zinc-100"
+          placeholderTextColor="#00562D40"
+          className="flex-1 min-h-[46px] bg-white border border-[#00562D]/20 rounded-xl px-4 text-sm text-[#00562D] font-medium"
         />
         <AppButton
           title={t('chat.send')}
