@@ -2,7 +2,7 @@ import '../global.css';
 import '@/shared/i18n/i18n';
 import { useEffect, useState } from 'react';
 import { View, Text, ActivityIndicator } from 'react-native';
-import { Stack, useRouter, useSegments } from 'expo-router';
+import { Slot, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
@@ -76,10 +76,7 @@ function NavigationAndBiometricGuard() {
   return (
     <SafeAreaView className="flex-1 bg-brand-beige" edges={['top', 'left', 'right']}>
       <OfflineBanner isOnline={isOnline} />
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="(auth)" />
-        <Stack.Screen name="(app)" />
-      </Stack>
+      <Slot />
     </SafeAreaView>
   );
 }
