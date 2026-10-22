@@ -26,12 +26,12 @@ export function AppButton({
 }: ButtonProps) {
   const bgClass =
     variant === 'primary'
-      ? 'bg-[#00562D] active:bg-[#004222]'
+      ? 'bg-[#00562D]'
       : variant === 'danger'
-        ? 'bg-red-500/10 border border-red-500/20 active:bg-red-500/20'
+        ? 'bg-red-500/10 border border-red-500/20'
         : variant === 'secondary'
-          ? 'bg-[#F5F5DC] border border-[#00562D]/15 active:bg-[#EBEBC8]'
-          : 'bg-transparent active:bg-black/5';
+          ? 'bg-[#F5F5DC] border border-[#00562D]/15'
+          : 'bg-transparent';
 
   const textClass =
     variant === 'primary'
@@ -47,6 +47,7 @@ export function AppButton({
         haptics.light();
         onPress();
       }}
+      style={({ pressed }) => [{ opacity: pressed ? 0.85 : 1 }]}
       className={`min-h-[50px] px-5 py-3.5 rounded-2xl flex-row items-center justify-center shadow-md shadow-[#00562D]/10 ${bgClass} ${
         disabled ? 'opacity-60' : ''
       }`}

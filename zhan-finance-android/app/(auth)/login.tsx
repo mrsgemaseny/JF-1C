@@ -197,7 +197,8 @@ export default function LoginScreen() {
               <Pressable
                 onPress={() => void handleVerifyOtp()}
                 disabled={loading || otpCode.trim().length < 6}
-                className="w-full h-14 bg-[#00562D] rounded-2xl flex-row items-center justify-center shadow-lg shadow-[#00562D]/15 active:bg-[#004222]"
+                style={({ pressed }) => [{ opacity: pressed ? 0.85 : 1 }]}
+                className="w-full h-14 bg-[#00562D] rounded-2xl flex-row items-center justify-center shadow-lg shadow-[#00562D]/15"
               >
                 <Text className="text-[#F5F5DC] font-black uppercase tracking-wider text-base">
                   {loading ? 'ПРОВЕРКА...' : t('auth.verifyButton')}
@@ -265,7 +266,8 @@ export default function LoginScreen() {
               <Pressable
                 onPress={() => void handleLogin()}
                 disabled={loading || !email.trim() || !password}
-                className={`w-full h-14 bg-[#00562D] rounded-2xl flex-row items-center justify-center shadow-lg shadow-[#00562D]/15 active:bg-[#004222] ${
+                style={({ pressed }) => [{ opacity: pressed ? 0.85 : 1 }]}
+                className={`w-full h-14 bg-[#00562D] rounded-2xl flex-row items-center justify-center shadow-lg shadow-[#00562D]/15 ${
                   !email.trim() || !password ? 'opacity-60' : ''
                 }`}
               >
@@ -287,7 +289,8 @@ export default function LoginScreen() {
               {/* Google Button */}
               <Pressable
                 onPress={() => haptics.light()}
-                className="w-full h-12 bg-white border border-[#00562D]/15 rounded-xl flex-row items-center justify-center active:bg-[#f9f9f6]"
+                style={({ pressed }) => [{ opacity: pressed ? 0.8 : 1 }]}
+                className="w-full h-12 bg-white border border-[#00562D]/15 rounded-xl flex-row items-center justify-center"
               >
                 <View className="w-5 h-5 mr-2.5 items-center justify-center">
                   <Text className="font-bold text-base text-[#4285F4]">G</Text>
@@ -410,7 +413,8 @@ export default function LoginScreen() {
               <Pressable
                 onPress={() => void handleRegister()}
                 disabled={loading || !email.trim() || !password || !fullName.trim()}
-                className={`w-full h-14 bg-[#00562D] rounded-2xl flex-row items-center justify-center shadow-lg shadow-[#00562D]/15 active:bg-[#004222] ${
+                style={({ pressed }) => [{ opacity: pressed ? 0.85 : 1 }]}
+                className={`w-full h-14 bg-[#00562D] rounded-2xl flex-row items-center justify-center shadow-lg shadow-[#00562D]/15 ${
                   !email.trim() || !password || !fullName.trim() ? 'opacity-60' : ''
                 }`}
               >
