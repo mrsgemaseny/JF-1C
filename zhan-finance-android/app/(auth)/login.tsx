@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -9,10 +9,7 @@ import {
   Image,
   Pressable,
 } from 'react-native';
-import * as WebBrowser from 'expo-web-browser';
-import * as Google from 'expo-auth-session/providers/google';
-import * as AuthSession from 'expo-auth-session';
-import { ResponseType } from 'expo-auth-session';
+import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -21,7 +18,10 @@ import { useMobileAuth } from '@/features/auth/AuthContext';
 import { ApiError } from '@/shared/api/http';
 import { haptics } from '@/shared/lib/haptics';
 
-WebBrowser.maybeCompleteAuthSession();
+GoogleSignin.configure({
+  webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+  iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+});
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -29,48 +29,33 @@ export default function LoginScreen() {
   const { signIn, signInWithGoogle, verifySecondFactor, pendingVerification } = useMobileAuth();
   const insets = useSafeAreaInsets();
 
-  const redirectUri = AuthSession.makeRedirectUri({
-    scheme: 'zhanfinance',
-  });
+  const handleGoogleSignIn = async () => {
+    try {
+      haptics.light();
+      setErrorMessage(null);
+      await GoogleSignin.hasPlayServices();
+      const response = await GoogleSignin.signIn();
+      const idToken = response.data?.idToken ?? (response as any).idToken;
+      if (!idToken) throw new Error('No idToken');
 
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
-    iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
-    redirectUri,
-    responseType: ResponseType.IdToken,
-  });
-
-  useEffect(() => {
-    if (response) {
-      console.log('[Google Auth] response type:', response.type);
-    }
-    if (response?.type === 'success') {
-      const idToken = response.authentication?.idToken || (response.params as any)?.id_token;
-      if (idToken) {
-        setLoading(true);
-        setErrorMessage(null);
-        signInWithGoogle(idToken)
-          .then((result) => {
-            haptics.success();
-            if (result.isPendingApproval) {
-              setErrorMessage('Заявка на регистрацию отправлена. Ожидайте подтверждения администратора.');
-            } else if (!result.requiresVerification) {
-              router.replace('/(app)');
-            }
-          })
-          .catch((err) => {
-            haptics.error();
-            setErrorMessage(
-              err instanceof ApiError ? err.message : 'Ошибка при входе через Google'
-            );
-          })
-          .finally(() => setLoading(false));
+      setLoading(true);
+      const result = await signInWithGoogle(idToken);
+      haptics.success();
+      if (result.isPendingApproval) {
+        setErrorMessage('Заявка на регистрацию отправлена. Ожидайте подтверждения администратора.');
+      } else if (!result.requiresVerification) {
+        router.replace('/(app)');
       }
-    } else if (response?.type === 'error') {
+    } catch (err: any) {
       haptics.error();
-      setErrorMessage('Не удалось войти через Google');
+      if (err?.code === statusCodes.SIGN_IN_CANCELLED) return;
+      setErrorMessage(
+        err instanceof ApiError ? err.message : 'Ошибка при входе через Google'
+      );
+    } finally {
+      setLoading(false);
     }
-  }, [response]);
+  };
 
   // Form fields
   const [email, setEmail] = useState('');
@@ -357,19 +342,11 @@ export default function LoginScreen() {
 
               {/* Google Button */}
               <Pressable
-                disabled={!request || loading}
-                onPress={() => {
-                  haptics.light();
-                  setErrorMessage(null);
-                  console.log('[Google Auth] redirectUri:', request?.redirectUri);
-                  console.log('[Google Auth] url:', request?.url);
-                  if (promptAsync) {
-                    void promptAsync();
-                  }
-                }}
+                disabled={loading}
+                onPress={() => void handleGoogleSignIn()}
                 style={({ pressed }) => [
                   {
-                    opacity: pressed || !request || loading ? 0.8 : 1,
+                    opacity: pressed || loading ? 0.8 : 1,
                     borderColor: 'rgba(0, 86, 45, 0.15)',
                   },
                 ]}
