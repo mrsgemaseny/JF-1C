@@ -11,8 +11,8 @@ import {
 } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
+import * as AuthSession from 'expo-auth-session';
 import { ResponseType } from 'expo-auth-session';
-import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -29,19 +29,14 @@ export default function LoginScreen() {
   const { signIn, signInWithGoogle, verifySecondFactor, pendingVerification } = useMobileAuth();
   const insets = useSafeAreaInsets();
 
-  const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
-  const expoProxyRedirectUri = 'https://auth.expo.io/@anonymous/zhan-finance-android';
+  const redirectUri = AuthSession.makeRedirectUri({
+    scheme: 'zhanfinance',
+  });
 
   const [request, response, promptAsync] = Google.useAuthRequest({
-    clientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
-    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || '',
-    androidClientId: isExpoGo
-      ? process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID
-      : process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID || '',
-    iosClientId: isExpoGo
-      ? process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID
-      : process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID || process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || '',
-    redirectUri: isExpoGo ? expoProxyRedirectUri : undefined,
+    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
+    iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+    redirectUri,
     responseType: ResponseType.IdToken,
   });
 

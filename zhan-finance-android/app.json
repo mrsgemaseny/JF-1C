@@ -2,6 +2,7 @@
   "expo": {
     "name": "ZHAN FINANCE",
     "slug": "zhan-finance-android",
+    "owner": "mrsgemaseny",
     "version": "1.1.0",
     "orientation": "portrait",
     "scheme": "zhanfinance",
