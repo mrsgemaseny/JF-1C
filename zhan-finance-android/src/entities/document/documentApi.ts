@@ -2,11 +2,14 @@ import { apiRequest } from '@/shared/api/http';
 
 export interface MobileDocumentDto {
   id: number;
-  title: string;
+  userId?: number;
+  clientName?: string;
   fileName: string;
+  contentType?: string;
   fileSize?: number;
-  category?: string;
-  createdAt: string;
+  status: string;
+  createdAt?: string;
+  folder?: string;
   downloadUrl?: string;
 }
 

@@ -28,17 +28,19 @@ export function AppButton({
     variant === 'primary'
       ? 'bg-[#00562D]'
       : variant === 'danger'
-        ? 'bg-red-500/10 border border-red-500/20'
+        ? 'bg-red-50 border border-red-200'
         : variant === 'secondary'
-          ? 'bg-[#F5F5DC] border border-[#00562D]/15'
+          ? 'bg-white border border-gray-200'
           : 'bg-transparent';
 
   const textClass =
     variant === 'primary'
-      ? 'text-[#F5F5DC] font-bold uppercase tracking-wider'
+      ? 'text-white font-semibold'
       : variant === 'danger'
         ? 'text-red-600 font-semibold'
-        : 'text-[#00562D] font-bold';
+        : variant === 'secondary'
+          ? 'text-gray-700 font-semibold'
+          : 'text-[#00562D] font-semibold';
 
   return (
     <Pressable
@@ -48,14 +50,14 @@ export function AppButton({
         onPress();
       }}
       style={({ pressed }) => [{ opacity: pressed ? 0.85 : 1 }]}
-      className={`min-h-[50px] px-5 py-3.5 rounded-2xl flex-row items-center justify-center shadow-md shadow-[#00562D]/10 ${bgClass} ${
+      className={`min-h-[46px] px-4 py-2.5 rounded-xl flex-row items-center justify-center ${bgClass} ${
         disabled ? 'opacity-60' : ''
       }`}
     >
       {loading ? (
         <ActivityIndicator
           size="small"
-          color={variant === 'primary' ? '#F5F5DC' : '#00562D'}
+          color={variant === 'primary' ? '#FFFFFF' : '#00562D'}
         />
       ) : (
         <Text className={`text-sm ${textClass}`}>{title}</Text>
@@ -67,7 +69,7 @@ export function AppButton({
 export function SurfaceCard({ children, className = '', ...rest }: ViewProps & { className?: string }) {
   return (
     <View
-      className={`bg-white rounded-3xl border border-[#00562D]/10 p-6 shadow-xl shadow-black/5 ${className}`}
+      className={`bg-white rounded-xl border border-gray-200 p-4 shadow-sm ${className}`}
       {...rest}
     >
       {children}
@@ -76,17 +78,19 @@ export function SurfaceCard({ children, className = '', ...rest }: ViewProps & {
 }
 
 interface AppInputProps extends TextInputProps {
-  label: string;
+  label?: string;
   error?: string;
 }
 
 export function AppInput({ label, error, ...props }: AppInputProps) {
   return (
     <View className="mb-4">
-      <Text className="text-xs font-bold text-[#00562D]/75 uppercase tracking-wide mb-1.5">{label}</Text>
+      {label ? (
+        <Text className="text-xs font-semibold text-gray-700 mb-1.5">{label}</Text>
+      ) : null}
       <TextInput
-        placeholderTextColor="#9ca3af"
-        className="min-h-[48px] bg-white border border-[#00562D]/20 focus:border-[#00562D] rounded-xl px-4 py-3 text-sm text-[#00562D] font-medium"
+        placeholderTextColor="#9CA3AF"
+        className="min-h-[46px] bg-white border border-gray-200 focus:border-[#00562D] rounded-xl px-4 py-2.5 text-sm text-gray-900 font-medium"
         {...props}
       />
       {error ? (
@@ -96,23 +100,57 @@ export function AppInput({ label, error, ...props }: AppInputProps) {
   );
 }
 
-interface StatusBadgeProps {
+export interface StatusBadgeProps {
   label: string;
   tone?: 'emerald' | 'amber' | 'red' | 'blue' | 'zinc';
+  color?: string;
 }
 
-export function StatusBadge({ label, tone = 'zinc' }: StatusBadgeProps) {
-  const toneStyles: Record<NonNullable<StatusBadgeProps['tone']>, string> = {
-    emerald: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
-    amber: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
-    red: 'bg-red-500/15 text-red-400 border-red-500/30',
-    blue: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
-    zinc: 'bg-zinc-800 text-zinc-300 border-white/10',
+export function StatusBadge({ label, tone = 'zinc', color }: StatusBadgeProps) {
+  if (color) {
+    return (
+      <View
+        style={{ backgroundColor: color }}
+        className="px-2.5 py-0.5 rounded-full items-center justify-center self-start"
+      >
+        <Text className="text-xs font-semibold text-white">{label}</Text>
+      </View>
+    );
+  }
+
+  const toneStyles: Record<
+    NonNullable<StatusBadgeProps['tone']>,
+    { container: string; text: string }
+  > = {
+    emerald: {
+      container: 'bg-emerald-50 border-emerald-200',
+      text: 'text-emerald-800',
+    },
+    amber: {
+      container: 'bg-amber-50 border-amber-200',
+      text: 'text-amber-800',
+    },
+    red: {
+      container: 'bg-red-50 border-red-200',
+      text: 'text-red-800',
+    },
+    blue: {
+      container: 'bg-blue-50 border-blue-200',
+      text: 'text-blue-800',
+    },
+    zinc: {
+      container: 'bg-gray-100 border-gray-200',
+      text: 'text-gray-700',
+    },
   };
 
+  const current = toneStyles[tone] ?? toneStyles.zinc;
+
   return (
-    <View className={`px-2 py-0.5 rounded border ${toneStyles[tone]}`}>
-      <Text className="text-xs font-medium text-zinc-200">{label}</Text>
+    <View
+      className={`px-2.5 py-0.5 rounded-full border items-center justify-center self-start ${current.container}`}
+    >
+      <Text className={`text-xs font-semibold ${current.text}`}>{label}</Text>
     </View>
   );
 }

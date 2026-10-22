@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { View, Text, Switch, Pressable } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useMobileAuth } from '@/features/auth/AuthContext';
 import {
@@ -13,6 +14,7 @@ import { haptics } from '@/shared/lib/haptics';
 export default function ProfileScreen() {
   const { t, i18n } = useTranslation();
   const { user, signOut } = useMobileAuth();
+  const insets = useSafeAreaInsets();
   const [biometricsEnabled, setBiometricsEnabled] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
 
@@ -31,24 +33,29 @@ export default function ProfileScreen() {
     await secureAuthStorage.setBiometricEnabled(next);
   };
 
+  const topPadding = Math.max(insets.top, 16);
+
   return (
-    <View className="flex-1 bg-brand-beige px-4 pt-4">
-      <Text className="text-2xl font-black uppercase text-[#00562D] mb-4">
+    <View
+      className="flex-1 bg-gray-50 px-4"
+      style={{ paddingTop: topPadding }}
+    >
+      <Text className="text-2xl font-bold text-gray-900 mb-4">
         {t('nav.profile')}
       </Text>
 
       <SurfaceCard className="mb-4">
-        <Text className="text-lg font-black text-[#00562D]">
+        <Text className="text-lg font-bold text-gray-900">
           {user?.fullName}
         </Text>
-        <Text className="text-sm font-medium text-[#00562D]/70 mt-0.5">{user?.email}</Text>
-        <Text className="text-xs font-bold text-[#00562D] mt-2 uppercase tracking-wide">
+        <Text className="text-sm font-medium text-gray-500 mt-0.5">{user?.email}</Text>
+        <Text className="text-xs font-semibold text-[#00562D] mt-2 uppercase tracking-wide">
           {user?.role ? t(`roles.${user.role}`) : ''}
         </Text>
       </SurfaceCard>
 
       <SurfaceCard className="mb-4">
-        <Text className="text-xs font-bold uppercase text-[#00562D]/70 mb-3 tracking-wider">
+        <Text className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
           {t('common.language')}
         </Text>
         <View className="flex-row gap-2">
@@ -58,18 +65,17 @@ export default function ProfileScreen() {
               <Pressable
                 key={loc.code}
                 onPress={() => {
-                  haptics.light();
                   void switchLanguage(loc.code);
                 }}
                 className={`flex-1 py-2.5 rounded-xl border items-center ${
                   active
                     ? 'bg-[#00562D] border-[#00562D]'
-                    : 'bg-white border-[#00562D]/15'
+                    : 'bg-white border-gray-200'
                 }`}
               >
                 <Text
-                  className={`text-xs font-bold ${
-                    active ? 'text-[#F5F5DC]' : 'text-[#00562D]/75'
+                  className={`text-xs ${
+                    active ? 'font-semibold text-white' : 'font-medium text-gray-700'
                   }`}
                 >
                   {loc.label}
@@ -81,12 +87,12 @@ export default function ProfileScreen() {
       </SurfaceCard>
 
       <SurfaceCard className="mb-6 flex-row items-center justify-between">
-        <Text className="text-sm font-bold text-[#00562D] flex-1 pr-3">
+        <Text className="text-sm font-semibold text-gray-900 flex-1 pr-3">
           {t('common.biometrics')}
         </Text>
         <Switch
           value={biometricsEnabled}
-          trackColor={{ false: '#d1d5db', true: '#00562D' }}
+          trackColor={{ false: '#E5E7EB', true: '#00562D' }}
           thumbColor="#FFFFFF"
           onValueChange={(val) => {
             void toggleBiometrics(val);

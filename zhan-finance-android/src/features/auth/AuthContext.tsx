@@ -37,8 +37,9 @@ interface AuthContextValue {
   isHydrating: boolean;
   isBiometricLocked: boolean;
   pendingVerification: PendingVerificationState | null;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (payload: { fullName: string; email: string; password: string; phone?: string; companyName?: string }) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<{ requiresVerification: boolean }>;
+  signInWithGoogle: (credential: string, role?: 'CLIENT' | 'EMPLOYEE') => Promise<{ requiresVerification: boolean; isPendingApproval?: boolean }>;
+  signUp: (payload: { fullName: string; email: string; password: string; phone?: string; companyName?: string }) => Promise<{ requiresVerification: boolean }>;
   verifySecondFactor: (code: string) => Promise<void>;
   unlockBiometrics: () => Promise<boolean>;
   signOut: () => Promise<void>;
@@ -154,7 +155,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             preAuthToken: res.preAuthToken,
             email: email.trim(),
           });
-          return;
+          return { requiresVerification: true };
         }
         if (res.requires2FA && res.preAuthToken) {
           setPendingVerification({
@@ -162,9 +163,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             preAuthToken: res.preAuthToken,
             email: email.trim(),
           });
-          return;
+          return { requiresVerification: true };
         }
         await persistAuthenticatedSession(res);
+        return { requiresVerification: false };
+      },
+
+      async signInWithGoogle(credential: string, role?: 'CLIENT' | 'EMPLOYEE') {
+        const res = await authMobileApi.loginWithGoogle(credential, role);
+        if (res.isPendingApproval) {
+          return { requiresVerification: false, isPendingApproval: true };
+        }
+        if (res.requiresEmailOtp && res.preAuthToken) {
+          setPendingVerification({
+            type: 'EMAIL_OTP',
+            preAuthToken: res.preAuthToken,
+            email: res.email || '',
+          });
+          return { requiresVerification: true };
+        }
+        if (res.requires2FA && res.preAuthToken) {
+          setPendingVerification({
+            type: '2FA',
+            preAuthToken: res.preAuthToken,
+            email: res.email || '',
+          });
+          return { requiresVerification: true };
+        }
+        await persistAuthenticatedSession(res);
+        return { requiresVerification: false };
       },
 
       async signUp(payload: { fullName: string; email: string; password: string; phone?: string; companyName?: string }) {
@@ -175,9 +202,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             preAuthToken: res.preAuthToken,
             email: payload.email.trim(),
           });
-          return;
+          return { requiresVerification: true };
         }
         await persistAuthenticatedSession(res);
+        return { requiresVerification: false };
       },
 
       async verifySecondFactor(code: string) {

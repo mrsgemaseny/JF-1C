@@ -8,10 +8,10 @@ module.exports = {
         'brand-green': '#00562D',
         'brand-beige': '#F5F5DC',
         'brand-accent': '#4a7c59',
-        canvas: '#F5F5DC',
+        canvas: '#F9FAFB',
         surface: '#FFFFFF',
-        'surface-elevated': '#FAFAFA',
-        border: 'rgba(0, 86, 45, 0.1)',
+        'surface-elevated': '#FFFFFF',
+        border: '#E5E7EB',
         brand: {
           DEFAULT: '#00562D',
           dark: '#004222',

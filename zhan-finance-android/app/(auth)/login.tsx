@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -9,28 +9,78 @@ import {
   Image,
   Pressable,
 } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
+import * as Google from 'expo-auth-session/providers/google';
+import { ResponseType } from 'expo-auth-session';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react-native';
 import { useMobileAuth } from '@/features/auth/AuthContext';
 import { ApiError } from '@/shared/api/http';
 import { haptics } from '@/shared/lib/haptics';
 
-export default function LoginScreen() {
-  const { t, i18n } = useTranslation();
-  const { signIn, signUp, verifySecondFactor, pendingVerification } = useMobileAuth();
+WebBrowser.maybeCompleteAuthSession();
 
-  // Mode: LOGIN or REGISTER
-  const [isRegisterMode, setIsRegisterMode] = useState(false);
+export default function LoginScreen() {
+  const router = useRouter();
+  const { t, i18n } = useTranslation();
+  const { signIn, signInWithGoogle, verifySecondFactor, pendingVerification } = useMobileAuth();
+  const insets = useSafeAreaInsets();
+
+  const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+  const expoProxyRedirectUri = 'https://auth.expo.io/@anonymous/zhan-finance-android';
+
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    clientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || '',
+    androidClientId: isExpoGo
+      ? process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID
+      : process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID || '',
+    iosClientId: isExpoGo
+      ? process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID
+      : process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID || process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || '',
+    redirectUri: isExpoGo ? expoProxyRedirectUri : undefined,
+    responseType: ResponseType.IdToken,
+  });
+
+  useEffect(() => {
+    if (response) {
+      console.log('[Google Auth] response type:', response.type);
+    }
+    if (response?.type === 'success') {
+      const idToken = response.authentication?.idToken || (response.params as any)?.id_token;
+      if (idToken) {
+        setLoading(true);
+        setErrorMessage(null);
+        signInWithGoogle(idToken)
+          .then((result) => {
+            haptics.success();
+            if (result.isPendingApproval) {
+              setErrorMessage('Заявка на регистрацию отправлена. Ожидайте подтверждения администратора.');
+            } else if (!result.requiresVerification) {
+              router.replace('/(app)');
+            }
+          })
+          .catch((err) => {
+            haptics.error();
+            setErrorMessage(
+              err instanceof ApiError ? err.message : 'Ошибка при входе через Google'
+            );
+          })
+          .finally(() => setLoading(false));
+      }
+    } else if (response?.type === 'error') {
+      haptics.error();
+      setErrorMessage('Не удалось войти через Google');
+    }
+  }, [response]);
 
   // Form fields
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-
-  // Additional fields for registration
-  const [fullName, setFullName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [companyName, setCompanyName] = useState('');
 
   const [otpCode, setOtpCode] = useState('');
   const [loading, setLoading] = useState(false);
@@ -46,35 +96,15 @@ export default function LoginScreen() {
     setLoading(true);
     setErrorMessage(null);
     try {
-      await signIn(email, password);
+      const result = await signIn(email, password);
       haptics.success();
+      if (!result.requiresVerification) {
+        router.replace('/(app)');
+      }
     } catch (err) {
       haptics.error();
       setErrorMessage(
         err instanceof ApiError ? err.message : t('auth.invalidCredentials')
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRegister = async () => {
-    if (!email.trim() || !password || !fullName.trim()) return;
-    setLoading(true);
-    setErrorMessage(null);
-    try {
-      await signUp({
-        fullName: fullName.trim(),
-        email: email.trim(),
-        password,
-        phone: phone.trim() || undefined,
-        companyName: companyName.trim() || undefined,
-      });
-      haptics.success();
-    } catch (err) {
-      haptics.error();
-      setErrorMessage(
-        err instanceof ApiError ? err.message : 'Ошибка при регистрации'
       );
     } finally {
       setLoading(false);
@@ -88,6 +118,7 @@ export default function LoginScreen() {
     try {
       await verifySecondFactor(otpCode);
       haptics.success();
+      router.replace('/(app)');
     } catch (err) {
       haptics.error();
       setErrorMessage(
@@ -98,10 +129,13 @@ export default function LoginScreen() {
     }
   };
 
+  const topPadding = Math.max(insets.top, 16);
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       className="flex-1 bg-[#F5F5DC]"
+      style={{ paddingTop: topPadding }}
     >
       <ScrollView
         contentContainerStyle={{
@@ -109,11 +143,22 @@ export default function LoginScreen() {
           justifyContent: 'center',
           alignItems: 'center',
           paddingHorizontal: 16,
-          paddingVertical: 32,
+          paddingBottom: Math.max(insets.bottom, 24),
+          paddingTop: 16,
         }}
         keyboardShouldPersistTaps="handled"
       >
-        <View className="w-full max-w-[420px] bg-white rounded-[32px] p-7 sm:p-9 border border-[#00562D]/10 shadow-xl shadow-black/5">
+        <View
+          style={{
+            borderColor: 'rgba(0, 86, 45, 0.1)',
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 10 },
+            shadowOpacity: 0.05,
+            shadowRadius: 20,
+            elevation: 4,
+          }}
+          className="w-full max-w-[420px] bg-white rounded-[32px] p-7 sm:p-9 border"
+        >
           {/* Header: Logo and Language Pill */}
           <View className="flex-row items-center justify-between mb-8">
             <Image
@@ -121,7 +166,10 @@ export default function LoginScreen() {
               style={{ width: 130, height: 38 }}
               resizeMode="contain"
             />
-            <View className="flex-row items-center bg-[#f4f4f0] rounded-full p-1 border border-[#00562D]/10">
+            <View
+              style={{ borderColor: 'rgba(0, 86, 45, 0.1)' }}
+              className="flex-row items-center bg-[#f4f4f0] rounded-full p-1 border"
+            >
               {[
                 { code: 'ru', label: 'RU' },
                 { code: 'kk', label: 'KZ' },
@@ -138,9 +186,10 @@ export default function LoginScreen() {
                     }`}
                   >
                     <Text
-                      className={`text-[11px] font-bold ${
-                        active ? 'text-[#F5F5DC]' : 'text-[#00562D]/70'
-                      }`}
+                      style={{
+                        color: active ? '#F5F5DC' : 'rgba(0, 86, 45, 0.7)',
+                      }}
+                      className="text-[11px] font-bold"
                     >
                       {lang.label}
                     </Text>
@@ -153,18 +202,15 @@ export default function LoginScreen() {
           {/* Titles */}
           <View className="mb-6">
             <Text className="text-2xl sm:text-3xl font-black uppercase text-[#00562D] tracking-tight">
-              {pendingVerification
-                ? t('auth.twoFactorTitle')
-                : isRegisterMode
-                  ? 'РЕГИСТРАЦИЯ'
-                  : 'ВХОД В СИСТЕМУ'}
+              {pendingVerification ? t('auth.twoFactorTitle') : 'ВХОД В СИСТЕМУ'}
             </Text>
-            <Text className="text-sm font-medium text-[#00562D]/70 mt-1.5 leading-relaxed">
+            <Text
+              style={{ color: 'rgba(0, 86, 45, 0.7)' }}
+              className="text-sm font-medium mt-1.5 leading-relaxed"
+            >
               {pendingVerification
                 ? t('auth.twoFactorSubtitle')
-                : isRegisterMode
-                  ? 'Заполните данные для создания личного кабинета'
-                  : 'Введите ваши данные для доступа к личному кабинету'}
+                : 'Введите ваши данные для доступа к личному кабинету'}
             </Text>
           </View>
 
@@ -191,21 +237,22 @@ export default function LoginScreen() {
                   maxLength={6}
                   placeholder="000000"
                   placeholderTextColor="#9ca3af"
-                  className="h-14 bg-white border border-[#00562D]/20 rounded-2xl px-4 text-base text-[#00562D] font-medium"
+                  style={{ borderColor: 'rgba(0, 86, 45, 0.2)' }}
+                  className="h-14 bg-white border rounded-2xl px-4 text-base text-[#00562D] font-medium"
                 />
               </View>
               <Pressable
                 onPress={() => void handleVerifyOtp()}
                 disabled={loading || otpCode.trim().length < 6}
                 style={({ pressed }) => [{ opacity: pressed ? 0.85 : 1 }]}
-                className="w-full h-14 bg-[#00562D] rounded-2xl flex-row items-center justify-center shadow-lg shadow-[#00562D]/15"
+                className="w-full h-14 bg-[#00562D] rounded-2xl flex-row items-center justify-center"
               >
                 <Text className="text-[#F5F5DC] font-black uppercase tracking-wider text-base">
                   {loading ? 'ПРОВЕРКА...' : t('auth.verifyButton')}
                 </Text>
               </Pressable>
             </View>
-          ) : !isRegisterMode ? (
+          ) : (
             /* Login Form */
             <View>
               {/* Email */}
@@ -213,7 +260,10 @@ export default function LoginScreen() {
                 <Text className="text-xs font-bold text-[#00562D] mb-2 uppercase tracking-wide">
                   Email <Text className="text-red-500">*</Text>
                 </Text>
-                <View className="h-14 bg-white border border-[#00562D]/20 rounded-2xl flex-row items-center px-4">
+                <View
+                  style={{ borderColor: 'rgba(0, 86, 45, 0.2)' }}
+                  className="h-14 bg-white border rounded-2xl flex-row items-center px-4"
+                >
                   <Mail color="#00562D" opacity={0.4} size={20} />
                   <TextInput
                     value={email}
@@ -233,7 +283,10 @@ export default function LoginScreen() {
                 <Text className="text-xs font-bold text-[#00562D] mb-2 uppercase tracking-wide">
                   Пароль <Text className="text-red-500">*</Text>
                 </Text>
-                <View className="h-14 bg-white border border-[#00562D]/20 rounded-2xl flex-row items-center px-4">
+                <View
+                  style={{ borderColor: 'rgba(0, 86, 45, 0.2)' }}
+                  className="h-14 bg-white border rounded-2xl flex-row items-center px-4"
+                >
                   <Lock color="#00562D" opacity={0.4} size={20} />
                   <TextInput
                     value={password}
@@ -256,7 +309,10 @@ export default function LoginScreen() {
               {/* Forgot password */}
               <View className="flex-row justify-end mb-5">
                 <Pressable onPress={() => haptics.light()}>
-                  <Text className="text-xs font-bold text-[#00562D]/75">
+                  <Text
+                    style={{ color: 'rgba(0, 86, 45, 0.75)' }}
+                    className="text-xs font-bold"
+                  >
                     Забыли пароль?
                   </Text>
                 </Pressable>
@@ -266,8 +322,17 @@ export default function LoginScreen() {
               <Pressable
                 onPress={() => void handleLogin()}
                 disabled={loading || !email.trim() || !password}
-                style={({ pressed }) => [{ opacity: pressed ? 0.85 : 1 }]}
-                className={`w-full h-14 bg-[#00562D] rounded-2xl flex-row items-center justify-center shadow-lg shadow-[#00562D]/15 ${
+                style={({ pressed }) => [
+                  {
+                    opacity: pressed ? 0.85 : 1,
+                    shadowColor: '#00562D',
+                    shadowOffset: { width: 0, height: 6 },
+                    shadowOpacity: 0.15,
+                    shadowRadius: 10,
+                    elevation: 3,
+                  },
+                ]}
+                className={`w-full h-14 bg-[#00562D] rounded-2xl flex-row items-center justify-center ${
                   !email.trim() || !password ? 'opacity-60' : ''
                 }`}
               >
@@ -279,165 +344,69 @@ export default function LoginScreen() {
 
               {/* Divider */}
               <View className="flex-row items-center my-6">
-                <View className="flex-1 h-[1px] bg-[#00562D]/15" />
-                <Text className="px-3 text-xs font-semibold text-[#00562D]/50">
+                <View
+                  style={{ backgroundColor: 'rgba(0, 86, 45, 0.15)' }}
+                  className="flex-1 h-[1px]"
+                />
+                <Text
+                  style={{ color: 'rgba(0, 86, 45, 0.5)' }}
+                  className="px-3 text-xs font-semibold"
+                >
                   или
                 </Text>
-                <View className="flex-1 h-[1px] bg-[#00562D]/15" />
+                <View
+                  style={{ backgroundColor: 'rgba(0, 86, 45, 0.15)' }}
+                  className="flex-1 h-[1px]"
+                />
               </View>
 
               {/* Google Button */}
               <Pressable
-                onPress={() => haptics.light()}
-                style={({ pressed }) => [{ opacity: pressed ? 0.8 : 1 }]}
-                className="w-full h-12 bg-white border border-[#00562D]/15 rounded-xl flex-row items-center justify-center"
+                disabled={!request || loading}
+                onPress={() => {
+                  haptics.light();
+                  setErrorMessage(null);
+                  console.log('[Google Auth] redirectUri:', request?.redirectUri);
+                  console.log('[Google Auth] url:', request?.url);
+                  if (promptAsync) {
+                    void promptAsync();
+                  }
+                }}
+                style={({ pressed }) => [
+                  {
+                    opacity: pressed || !request || loading ? 0.8 : 1,
+                    borderColor: 'rgba(0, 86, 45, 0.15)',
+                  },
+                ]}
+                className="w-full h-12 bg-white border rounded-xl flex-row items-center justify-center"
               >
                 <View className="w-5 h-5 mr-2.5 items-center justify-center">
                   <Text className="font-bold text-base text-[#4285F4]">G</Text>
                 </View>
-                <Text className="text-sm font-semibold text-[#00562D]/85">
+                <Text
+                  style={{ color: 'rgba(0, 86, 45, 0.85)' }}
+                  className="text-sm font-semibold"
+                >
                   Вход через аккаунт Google
                 </Text>
               </Pressable>
 
               {/* Switch to Register */}
               <View className="flex-row items-center justify-center mt-6">
-                <Text className="text-xs font-medium text-[#00562D]/70">
+                <Text
+                  style={{ color: 'rgba(0, 86, 45, 0.7)' }}
+                  className="text-xs font-medium"
+                >
                   Нет учетной записи?{' '}
                 </Text>
                 <Pressable
                   onPress={() => {
                     haptics.light();
-                    setIsRegisterMode(true);
-                    setErrorMessage(null);
+                    router.push('/(auth)/register');
                   }}
                 >
                   <Text className="text-xs font-black text-[#00562D] underline">
                     Зарегистрироваться
-                  </Text>
-                </Pressable>
-              </View>
-            </View>
-          ) : (
-            /* Register Form */
-            <View>
-              {/* Full Name */}
-              <View className="mb-4">
-                <Text className="text-xs font-bold text-[#00562D] mb-2 uppercase tracking-wide">
-                  ФИО / Имя <Text className="text-red-500">*</Text>
-                </Text>
-                <TextInput
-                  value={fullName}
-                  onChangeText={setFullName}
-                  placeholder="Иван Иванов"
-                  placeholderTextColor="#9ca3af"
-                  className="h-14 bg-white border border-[#00562D]/20 rounded-2xl px-4 text-sm font-medium text-[#00562D]"
-                />
-              </View>
-
-              {/* Email */}
-              <View className="mb-4">
-                <Text className="text-xs font-bold text-[#00562D] mb-2 uppercase tracking-wide">
-                  Email <Text className="text-red-500">*</Text>
-                </Text>
-                <View className="h-14 bg-white border border-[#00562D]/20 rounded-2xl flex-row items-center px-4">
-                  <Mail color="#00562D" opacity={0.4} size={20} />
-                  <TextInput
-                    value={email}
-                    onChangeText={setEmail}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    placeholder="example@gmail.com"
-                    placeholderTextColor="#9ca3af"
-                    className="flex-1 ml-3 text-sm font-medium text-[#00562D]"
-                  />
-                </View>
-              </View>
-
-              {/* Phone */}
-              <View className="mb-4">
-                <Text className="text-xs font-bold text-[#00562D] mb-2 uppercase tracking-wide">
-                  Телефон
-                </Text>
-                <TextInput
-                  value={phone}
-                  onChangeText={setPhone}
-                  keyboardType="phone-pad"
-                  placeholder="+7 (777) 000-00-00"
-                  placeholderTextColor="#9ca3af"
-                  className="h-14 bg-white border border-[#00562D]/20 rounded-2xl px-4 text-sm font-medium text-[#00562D]"
-                />
-              </View>
-
-              {/* Company */}
-              <View className="mb-4">
-                <Text className="text-xs font-bold text-[#00562D] mb-2 uppercase tracking-wide">
-                  Компания
-                </Text>
-                <TextInput
-                  value={companyName}
-                  onChangeText={setCompanyName}
-                  placeholder="ТОО Компания"
-                  placeholderTextColor="#9ca3af"
-                  className="h-14 bg-white border border-[#00562D]/20 rounded-2xl px-4 text-sm font-medium text-[#00562D]"
-                />
-              </View>
-
-              {/* Password */}
-              <View className="mb-5">
-                <Text className="text-xs font-bold text-[#00562D] mb-2 uppercase tracking-wide">
-                  Пароль <Text className="text-red-500">*</Text>
-                </Text>
-                <View className="h-14 bg-white border border-[#00562D]/20 rounded-2xl flex-row items-center px-4">
-                  <Lock color="#00562D" opacity={0.4} size={20} />
-                  <TextInput
-                    value={password}
-                    onChangeText={setPassword}
-                    secureTextEntry={!showPassword}
-                    placeholder="••••••••"
-                    placeholderTextColor="#9ca3af"
-                    className="flex-1 ml-3 text-sm font-medium text-[#00562D]"
-                  />
-                  <Pressable onPress={() => setShowPassword(!showPassword)} hitSlop={8}>
-                    {showPassword ? (
-                      <EyeOff color="#00562D" opacity={0.5} size={20} />
-                    ) : (
-                      <Eye color="#00562D" opacity={0.5} size={20} />
-                    )}
-                  </Pressable>
-                </View>
-              </View>
-
-              {/* Register button */}
-              <Pressable
-                onPress={() => void handleRegister()}
-                disabled={loading || !email.trim() || !password || !fullName.trim()}
-                style={({ pressed }) => [{ opacity: pressed ? 0.85 : 1 }]}
-                className={`w-full h-14 bg-[#00562D] rounded-2xl flex-row items-center justify-center shadow-lg shadow-[#00562D]/15 ${
-                  !email.trim() || !password || !fullName.trim() ? 'opacity-60' : ''
-                }`}
-              >
-                <Text className="text-[#F5F5DC] font-black uppercase tracking-wider text-base mr-2">
-                  {loading ? 'РЕГИСТРАЦИЯ...' : 'ЗАРЕГИСТРИРОВАТЬСЯ'}
-                </Text>
-                <ArrowRight color="#F5F5DC" size={18} />
-              </Pressable>
-
-              {/* Switch to Login */}
-              <View className="flex-row items-center justify-center mt-6">
-                <Text className="text-xs font-medium text-[#00562D]/70">
-                  Уже есть аккаунт?{' '}
-                </Text>
-                <Pressable
-                  onPress={() => {
-                    haptics.light();
-                    setIsRegisterMode(false);
-                    setErrorMessage(null);
-                  }}
-                >
-                  <Text className="text-xs font-black text-[#00562D] underline">
-                    Войти
                   </Text>
                 </Pressable>
               </View>

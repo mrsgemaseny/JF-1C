@@ -1,4 +1,5 @@
 import { View, Text, FlatList, Alert } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as DocumentPicker from 'expo-document-picker';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -29,6 +30,7 @@ function getToneForStatus(
 
 export default function BillingScreen() {
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
 
   const invoicesQuery = useQuery({
     queryKey: ['invoices', 'list'],
@@ -56,7 +58,7 @@ export default function BillingScreen() {
     onSuccess: () => {
       haptics.success();
       void queryClient.invalidateQueries({ queryKey: ['invoices'] });
-      Alert.alert('Успех', 'Чек успешно отправлен на проверку');
+      Alert.alert(t('common.save', 'Успех'), 'Чек успешно отправлен на проверку');
     },
     onError: (err) => {
       haptics.error();
@@ -66,10 +68,14 @@ export default function BillingScreen() {
   });
 
   const invoices: MobileInvoiceDto[] = invoicesQuery.data ?? [];
+  const topPadding = Math.max(insets.top, 16);
 
   return (
-    <View className="flex-1 bg-brand-beige px-4 pt-4">
-      <Text className="text-2xl font-black uppercase text-[#00562D] mb-4">
+    <View
+      className="flex-1 bg-gray-50 px-4"
+      style={{ paddingTop: topPadding }}
+    >
+      <Text className="text-2xl font-bold text-gray-900 mb-4">
         {t('billing.title')}
       </Text>
 
@@ -82,7 +88,7 @@ export default function BillingScreen() {
         }}
         ListEmptyComponent={
           <SurfaceCard>
-            <Text className="text-sm font-medium text-[#00562D]/70 text-center">
+            <Text className="text-sm font-medium text-gray-500 text-center">
               {t('billing.emptyInvoices')}
             </Text>
           </SurfaceCard>
@@ -90,24 +96,19 @@ export default function BillingScreen() {
         renderItem={({ item }) => (
           <SurfaceCard className="mb-3">
             <View className="flex-row items-center justify-between mb-2">
-              <Text className="text-base font-black text-[#00562D]">
-                {item.invoiceNumber}
+              <Text className="text-base font-bold text-gray-900 flex-1 mr-2" numberOfLines={1}>
+                {item.title}
               </Text>
               <StatusBadge
                 label={t(`billing.status.${item.status}`)}
                 tone={getToneForStatus(item.status)}
               />
             </View>
-            <Text className="text-2xl font-black text-[#00562D] my-1">
-              {item.amount.toLocaleString()} {item.currency}
+            <Text className="text-2xl font-bold text-gray-900 my-1">
+              {item.amount.toLocaleString('ru-RU')} ₸
             </Text>
-            {item.description ? (
-              <Text className="text-sm font-medium text-[#00562D]/70" numberOfLines={2}>
-                {item.description}
-              </Text>
-            ) : null}
             {item.dueDate ? (
-              <Text className="text-xs font-semibold text-[#00562D]/60 mt-1">
+              <Text className="text-xs font-medium text-gray-500 mt-1">
                 {t('billing.dueDate')}: {new Date(item.dueDate).toLocaleDateString()}
               </Text>
             ) : null}

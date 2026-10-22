@@ -1,5 +1,6 @@
 import { Tabs, Redirect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   LayoutDashboard,
   CheckSquare,
@@ -13,6 +14,7 @@ import { useMobileAuth } from '@/features/auth/AuthContext';
 export default function AppTabLayout() {
   const { t } = useTranslation();
   const { user } = useMobileAuth();
+  const insets = useSafeAreaInsets();
 
   if (!user) {
     return <Redirect href="/(auth)/login" />;
@@ -26,18 +28,18 @@ export default function AppTabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: '#F5F5DC',
-          borderTopColor: 'rgba(0, 86, 45, 0.12)',
+          backgroundColor: '#FFFFFF',
+          borderTopColor: '#E5E7EB',
           borderTopWidth: 1,
-          height: 62,
-          paddingBottom: 8,
+          height: 56 + Math.max(insets.bottom, 8),
+          paddingBottom: Math.max(insets.bottom, 8),
           paddingTop: 6,
         },
         tabBarActiveTintColor: '#00562D',
-        tabBarInactiveTintColor: 'rgba(0, 86, 45, 0.45)',
+        tabBarInactiveTintColor: '#9CA3AF',
         tabBarLabelStyle: {
           fontSize: 11,
-          fontWeight: '700',
+          fontWeight: '600',
         },
       }}
     >

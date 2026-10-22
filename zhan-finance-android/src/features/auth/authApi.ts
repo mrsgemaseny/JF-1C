@@ -41,6 +41,13 @@ export const authMobileApi = {
     });
   },
 
+  loginWithGoogle(credential: string, role?: 'CLIENT' | 'EMPLOYEE'): Promise<AuthResponse> {
+    return apiRequest<AuthResponse>('/api/v1/auth/google', {
+      method: 'POST',
+      body: JSON.stringify({ credential, role: role ?? 'CLIENT' }),
+    });
+  },
+
   register(payload: RegisterRequest): Promise<AuthResponse> {
     return apiRequest<AuthResponse>('/api/v1/auth/register', {
       method: 'POST',

@@ -18,9 +18,9 @@ export function OfflineBanner({ isOnline }: OfflineBannerProps) {
   }
 
   return (
-    <View className="bg-amber-500/15 border-b border-amber-500/30 px-4 py-2 flex-row items-center justify-between">
+    <View className="bg-amber-50 border-b border-amber-200 px-4 py-2 flex-row items-center justify-between">
       <View className="flex-1 pr-2">
-        <Text className="text-xs font-medium text-amber-300">
+        <Text className="text-xs font-medium text-amber-800">
           {!isOnline
             ? t('common.offlineMode')
             : t('common.queuedMutations', { count: pendingCount })}
@@ -31,9 +31,9 @@ export function OfflineBanner({ isOnline }: OfflineBannerProps) {
           onPress={() => {
             void flushOfflineMutationQueue();
           }}
-          className="px-2.5 py-1 rounded bg-amber-500/20 border border-amber-500/40"
+          className="px-2.5 py-1 rounded-lg bg-amber-100 border border-amber-300"
         >
-          <Text className="text-xs font-semibold text-amber-200">
+          <Text className="text-xs font-semibold text-amber-900">
             {t('common.syncNow')}
           </Text>
         </Pressable>

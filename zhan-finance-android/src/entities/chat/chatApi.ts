@@ -4,40 +4,49 @@ import {
   enqueueOfflineMutation,
 } from '@/shared/api/http';
 
+export interface ChatLastMessageDto {
+  id: number;
+  content: string;
+  createdAt: string;
+  isRead: boolean;
+}
+
+export interface MobileConversationDto {
+  id: number;
+  fullName: string;
+  email?: string;
+  role: string;
+  avatarUrl?: string;
+  unreadCount: number;
+  lastMessage?: ChatLastMessageDto;
+}
+
 export interface MobileChatMessageDto {
   id: number;
   senderId: number;
   receiverId: number;
   content: string;
   createdAt: string;
-  isRead: boolean;
+  isDeleted?: boolean;
+  isRead?: boolean;
   pendingOffline?: boolean;
-}
-
-export interface MobileConversationDto {
-  partnerId: number;
-  partnerName: string;
-  partnerRole: string;
-  lastMessage?: string;
-  lastMessageAt?: string;
-  unreadCount: number;
 }
 
 export const chatMobileApi = {
   getConversations(): Promise<MobileConversationDto[]> {
-    return apiRequest<MobileConversationDto[]>('/api/v1/chat/conversations');
+    return apiRequest<MobileConversationDto[]>('/api/v1/chat/contacts');
   },
 
   getMessages(partnerId: number): Promise<MobileChatMessageDto[]> {
-    return apiRequest<MobileChatMessageDto[]>(`/api/v1/chat/messages/${partnerId}`);
+    return apiRequest<MobileChatMessageDto[]>(`/api/v1/chat/${partnerId}`);
   },
 
   async sendMessage(
     receiverId: number,
     content: string
   ): Promise<{ queuedOffline: boolean }> {
-    const path = '/api/v1/chat/send';
-    const payload = { receiverId, content };
+    const path = `/api/v1/chat/${receiverId}`;
+    const payload = { content };
     try {
       await apiRequest(path, {
         method: 'POST',
@@ -51,5 +60,11 @@ export const chatMobileApi = {
       }
       throw err;
     }
+  },
+
+  markAsRead(partnerId: number): Promise<void> {
+    return apiRequest<void>(`/api/v1/chat/${partnerId}/read`, {
+      method: 'PUT',
+    });
   },
 };

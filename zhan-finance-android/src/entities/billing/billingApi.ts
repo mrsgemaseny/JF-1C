@@ -4,13 +4,11 @@ export type InvoiceStatus = 'PENDING' | 'PAID' | 'OVERDUE' | 'CANCELED';
 
 export interface MobileInvoiceDto {
   id: number;
-  invoiceNumber: string;
+  clientId?: number;
+  title: string;
   amount: number;
-  currency: string;
   status: InvoiceStatus;
   dueDate: string;
-  description?: string;
-  clientName?: string;
 }
 
 export const billingMobileApi = {
