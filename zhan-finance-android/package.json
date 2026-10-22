@@ -5,6 +5,8 @@
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
+    "dev": "powershell -ExecutionPolicy Bypass -File scripts/start-dev.ps1",
+    "dev:clear": "powershell -ExecutionPolicy Bypass -File scripts/start-dev.ps1 -Clear",
     "android": "expo run:android",
     "prebuild": "expo prebuild --platform android",
     "typecheck": "tsc --noEmit",
