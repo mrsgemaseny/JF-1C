@@ -23,8 +23,9 @@
 2. **Exhaustive System Audit Remediation & Full Automated Test Coverage**:
    - Monolith Backend: 371 tests PASS (`./gradlew check`). All N+1 hotspots eliminated.
    - Telegram Bot: 89 tests PASS (`./gradlew check`).
-   - Web Frontend: 198 tests PASS (25 files), `npx tsc -b` 0 errors, `npm run lint` 0 warnings.
-   - Android Mobile: 7 tests PASS (2 files).
+   - Web Frontend: 214 tests PASS (26 files), `npx tsc -b` 0 errors, `npm run lint` 0 warnings.
+   - Android Mobile: 22 tests PASS (3 files).
+   - Architectural Specs: `docs/NFR.md` (Non-Functional Requirements Specification approved).
 
 ## NEXT: Roadmap
 - Billing & Payments (WebKassa / Kaspi Pay integration).
