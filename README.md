@@ -4,8 +4,9 @@
 [![Commits](https://img.shields.io/badge/Commits-670+-informational.svg)](https://github.com/MrSgemaSeny/JF-1C/commits/main)
 [![Backend](https://img.shields.io/badge/Backend-Spring_Boot_3.4_%7C_Java_17-orange.svg)](https://spring.io/projects/spring-boot)
 [![Frontend](https://img.shields.io/badge/Frontend-React_19_%7C_TypeScript_%7C_Tailwind_v4-61DAFB.svg)](https://react.dev)
-[![Database](https://img.shields.io/badge/Database-PostgreSQL_17_%7C_Flyway_V1--V121-336791.svg)](https://www.postgresql.org)
-[![Automated Tests](https://img.shields.io/badge/Tests-366_Unit%2FIntegration_%2B_9_E2E_Suites-brightgreen.svg)](https://github.com/MrSgemaSeny/JF-1C)
+[![Database](https://img.shields.io/badge/Database-PostgreSQL_17_%7C_Flyway_V1--V132-336791.svg)](https://www.postgresql.org)
+[![Automated Tests](https://img.shields.io/badge/Tests-696+_Unit%2FIntegration_%2B_9_E2E_Suites-brightgreen.svg)](https://github.com/MrSgemaSeny/JF-1C)
+[![Mobile](https://img.shields.io/badge/Mobile-React_Native_0.76_%7C_Expo_52-black.svg)](https://expo.dev)
 [![Architecture](https://img.shields.io/badge/Architecture-Modular_Monolith_%2B_FSD-purple.svg)](https://feature-sliced.design)
 
 B2B SaaS-платформа и CRM-система, спроектированная под задачи бухгалтерского консалтинга, налогового сопровождения и финансового аутсорсинга в Республике Казахстан.
@@ -283,13 +284,15 @@ npm run dev
 
 Тестовое покрытие разделено на три уровня: юнит/интеграционные тесты, сквозные E2E-сьюты полного жизненного цикла и нагрузочные профили.
 
-### 9.1. Юнит и интеграционные тесты (366 тестов)
+### 9.1. Юнит и интеграционные тесты (696+ тестов)
 
-| Слой | Тест-раннер | Файлов | Тестов | Результат |
+| Слой | Тест-раннер | Файлов / Классов | Тестов | Результат |
 |---|---|---|---|---|
-| **Backend** | JUnit 5 + Mockito + MockMvc | 46 классов | 197 тестов | 100% Passed (0 errors) |
-| **Frontend** | Vitest + React Testing Library | 19 файлов | 169 тестов | 100% Passed (0 errors) |
-| **ИТОГО** | | **65 файлов** | **366 тестов** | **100% GREEN** |
+| **Backend Monolith** | JUnit 5 + Mockito + MockMvc | 68 классов | 371 тест | 100% Passed (0 errors) |
+| **Web Frontend** | Vitest + React Testing Library | 26 файлов | 214 тестов | 100% Passed (0 errors) |
+| **Telegram Bot Service** | JUnit 5 + Mockito | 22 класса | 89 тестов | 100% Passed (0 errors) |
+| **Android Mobile** | Vitest + React Native Mocks | 3 файла | 22 теста | 100% Passed (0 errors) |
+| **ИТОГО** | | **119 классов / файлов** | **696 тестов** | **100% GREEN** |
 
 ```bash
 # Запуск тестов бэкенда:
@@ -353,6 +356,7 @@ node run-all-e2e.mjs
 ## 11. Инженерная Документация
 
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — компонентная архитектура, топология потоков данных и ролевые матрицы.
+- [`docs/NFR.md`](docs/NFR.md) — спецификация нефункциональных требований (SLA/SLO, бюджеты задержек, Zero-Redis, Multi-Device Refresh Token Family, комплаенс РК).
 - [`docs/SYSTEM_VERIFICATION_REPORT.md`](docs/SYSTEM_VERIFICATION_REPORT.md) — детальный отчет по E2E-верификации и архитектурным выводам.
 - [`docs/ONBOARDING.md`](docs/ONBOARDING.md) — руководство по настройке рабочего окружения для новых разработчиков.
 - [`docs/RUNBOOK.md`](docs/RUNBOOK.md) — эксплуатационный регламент, мониторинг и процедуры восстановления.
