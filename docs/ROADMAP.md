@@ -1,7 +1,7 @@
 # ZhanFinance JF-1C — Roadmap будущих планов
 
 **Актуальность**: октябрь 2026  
-**Статус системы**: Production-ready. 363 backend-теста (100% PASS), 198 frontend-тестов (100% PASS).
+**Статус системы**: Production-ready v1.1.0. 371 backend-тест (100% PASS), 214 frontend-тестов (100% PASS), 22 mobile-теста (100% PASS), 89 telegram bot тестов (100% PASS) — 696+ тестов GREEN.
 
 ---
 
@@ -10,12 +10,15 @@
 | Модуль | Статус |
 |---|---|
 | Auth, 2FA (TOTP), Google OAuth, Gmail OTP | Done |
+| Multi-Device Refresh Token Family (RFC 6819, 5 сессий) | Done |
 | CRM (Task, Stage, Pipeline, Pool, Kanban) | Done |
 | Billing v1 (ручная оплата Kaspi / банк, Cloudflare R2, 4 тарифа) | Done |
 | LMS (Course, Chapter, Lesson, Certificate, Quiz) | Done |
 | Documents (PDF, Thymeleaf, опциональная подпись) | Done |
 | Chat (STOMP/SockJS, WebSocket ACL) | Done |
 | Telegram Bot Microservice (zhan-finance-tgbot, порт 8081) | Done |
+| Epic-22: Android Native Monolith (zhan-finance-android, Expo 52, MMKV, Mutex, Push) | Done |
+| NFR Specification (docs/NFR.md: SLA, SLO, Latency Budgets, Zero-Redis) | Done |
 | Landing (4 языка, i18n 100%, 4 тарифа, команда, FAQ) | Done |
 | Advisor-роль | Done |
 | Dashboard Analytics | Done |

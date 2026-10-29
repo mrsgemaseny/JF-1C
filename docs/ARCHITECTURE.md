@@ -6,10 +6,12 @@
 
 ## 1. Стек технологий
 
-* **Backend**: Spring Boot 3.4+ (Java 17), PostgreSQL 17, Flyway, Caffeine Cache, Hibernate/JPA, Gradle.
+* **Backend**: Spring Boot 3.4+ (Java 17), PostgreSQL 17, Flyway (V1–V132), Caffeine Cache, Hibernate/JPA, Gradle.
 * **Frontend**: React 19, Vite, TypeScript, Tailwind v4, Feature-Sliced Design (FSD).
-* **Безопасность**: Spring Security 6, JWT (access + refresh token с ротацией), Row-Level Access Control (`CrmAccessService`), 2FA (TOTP) для админов и эдвайзеров.
-* **Обсервабилити**: Micrometer OTLP Metrics, UptimeRobot, Prometheus.
+* **Mobile (Android)**: React Native 0.76+ / Expo SDK 52 (New Architecture: Hermes + JSI + Fabric), FSD 2.1, NativeWind v4, Android Keystore (`expo-secure-store`), MMKV Offline-First Cache, Single-Flight Refresh Mutex.
+* **Telegram Bot Microservice**: Отдельный сервис `zhan-finance-tgbot` (Spring Boot 3, Java 17, порт 8081), взаимодействие с монолитом по защищенному `X-Internal-Token` (`Role.INTERNAL_BOT`).
+* **Безопасность**: Spring Security 6, Multi-Device Refresh Token Family (RFC 6819, лимит 5 активных сессий), Row-Level Access Control (`CrmAccessService`), 2FA (TOTP) для админов и эдвайзеров.
+* **Обсервабилити**: Micrometer OTLP Metrics, UptimeRobot, Prometheus, сквозной `X-Request-Id` (MDC).
 * **Коммуникации**: STOMP / SockJS over WebSocket (авторизованные топики `/topic/chat/{userId}`).
 * **Инфраструктура**: Fly.io (Backend API), GitHub Pages (Frontend SPA), GitHub Actions (CI/CD, Nightly DB Backups в Telegram).
 
@@ -53,7 +55,7 @@
 
 ## 4. База данных и миграции Flyway
 
-* **Правило неизменяемости миграций**: Все миграции в `src/main/resources/db/migration/` (от `V1` до `V110+`) являются строго неизменяемыми. Изменение примененных скриптов ломает чексуммы и деплой.
+* **Правило неизменяемости миграций**: Все миграции в `src/main/resources/db/migration/` (от `V1` до `V132`) являются строго неизменяемыми. Изменение примененных скриптов ломает чексуммы и деплой.
 * **Инициализация данных**: Заполнение первичных данных (сидинг) выполняется исключительно через событие `@EventListener(ApplicationReadyEvent.class)`. Использование `@PostConstruct` для операций с БД строго запрещено.
 * **Защита аудита**: В PostgreSQL созданы триггеры, запрещающие выполнение `UPDATE` и `DELETE` запросов на таблицы аудита.
 
@@ -81,9 +83,11 @@ src/
 ## 6. Архитектура автоматизированного тестирования
 
 Стратегия верификации JF-1C разделена на три взаимодополняющих эшелона:
-1. **Модульные и интеграционные тесты (243 теста)**:
-   - Backend (JUnit 5 + Mockito + MockMvc): 169 тестов, проверяющих контракты контроллеров, логику сервисов, триггеры аудита и защиту от IDOR.
-   - Frontend (Vitest + React Testing Library): 74 теста, проверяющих рендеринг FSD-виджетов, формы входа, сброса паролей, переключение локалей и ограничения прав доступа.
+1. **Модульные и интеграционные тесты (696+ тестов)**:
+   - Backend Monolith (JUnit 5 + Mockito + MockMvc): 371 тест в 68 классах, проверяющих контроллеры, сервисы, Multi-Device Refresh Token Families, Device Push Tokens (V132), триггеры аудита и защиту от IDOR.
+   - Web Frontend (Vitest + React Testing Library): 214 тестов в 26 файлах, проверяющих рендеринг FSD-виджетов, формы входа, сброса паролей, переключение локалей (100% паритет 4 языков) и ограничения прав доступа.
+   - Telegram Bot Service (JUnit 5 + Mockito): 89 тестов в 22 классах, верифицирующих сценарии взаимодействия бота с ядром.
+   - Android Mobile (Vitest + React Native Mocks): 22 теста в 3 файлах, проверяющих HTTP Single-Flight Mutex, DTO-контракты, Offline Queue и паритет локализации.
 2. **Сквозные E2E-сьюты полного жизненного цикла (`tests/e2e/`)**:
    - `crm-lifecycle-live.mjs`: проверка воронки, задач, назначения, аудита и зачистки.
    - `lms-lifecycle-live.mjs`: создание и публикация курсов, прохождение уроков, сохранение прогресса.
