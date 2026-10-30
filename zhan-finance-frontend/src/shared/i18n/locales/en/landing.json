@@ -131,21 +131,47 @@
   "reviews_title1": "What they say",
   "reviews_title2": "clients",
   "reviews_desc": "Real stories of companies that entrusted us with their accounting.",
+  "reviews_rating_badge": "4.8 · 29 reviews on 2GIS",
   "reviews": [
     {
-      "name": "Name Surname",
-      "company": "LLP \"Example\"",
-      "text": "Outsourced all accounting to ЖАН FINANCE. Zero fines in a year, optimized taxes by 20%. Perfect."
+      "name": "Luiza M.",
+      "company": "2GIS · Shymkent",
+      "text": "True professionals. Skilled with documentation, know all criteria for business loans and grants. Always reachable and strictly work under contract."
     },
     {
-      "name": "Name Surname",
-      "company": "Example Network",
-      "text": "Really like the approach. Always in touch, answer quickly and to the point. HR accounting is no longer a headache."
+      "name": "Aidana A.",
+      "company": "2GIS · Shymkent",
+      "text": "Extremely competent staff. They help with business plans, strategy, and tax reports. Complete range of corporate services!"
     },
     {
-      "name": "Name Surname",
-      "company": "IE \"Example\"",
-      "text": "Opened IE through the guys, immediately took it for maintenance. Very convenient when everything is in one place."
+      "name": "Zarina K.",
+      "company": "2GIS · Shymkent",
+      "text": "Full support on business projects. Clear advice in both languages with zero fluff! Clear explanation of IP and LLP tax reporting."
+    },
+    {
+      "name": "Yerbolat A.",
+      "company": "2GIS · Shymkent",
+      "text": "Thanks to your professionalism and responsiveness, all my reports are submitted on time and without errors! Highly recommend."
+    },
+    {
+      "name": "Katerina K.",
+      "company": "2GIS · Shymkent",
+      "text": "Great service, skilled accountants — quickly and cleanly solved my problem. Highly recommended."
+    },
+    {
+      "name": "Isa I.",
+      "company": "2GIS · Shymkent",
+      "text": "Aman aga gave great advice and helped with documentation. Strongly recommend."
+    },
+    {
+      "name": "Aisha Kh.",
+      "company": "2GIS · 1C Training",
+      "text": "The 1C course is very informative, the instructor is very helpful. The provided handbook serves as a reliable reference."
+    },
+    {
+      "name": "Madina A.",
+      "company": "2GIS · IE & LLP",
+      "text": "They submit all reports for my business on time and with high quality, giving me complete peace of mind."
     }
   ],
   "services": {

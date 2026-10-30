@@ -67,3 +67,52 @@
   cursor: grabbing;
   cursor: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjZmZmZmZmIiBzdHJva2U9IiMwMDAwMDAiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMTggMTJWOGEyIDIgMCAwIDAtNCAwdjQiLz48cGF0aCBkPSJNMTQgMTJWNmEyIDIgMCAwIDAtNCAwdjYiLz48cGF0aCBkPSJNMTAgMTJWN2EyIDIgMCAwIDAtNCAwdjUiLz48cGF0aCBkPSJNNiAxNHYtMmEyIDIgMCAwIDAtNCAwdjZhOCA4IDAgMCAwIDE2IDB2LTUiLz48L3N2Zz4=') 12 12, grabbing !important;
 }
+
+
+/* Reviews Marquee Animations */
+@keyframes marquee-left {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes marquee-right {
+  from {
+    transform: translateX(-50%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-marquee-left {
+  animation: marquee-left 42s linear infinite;
+}
+
+.animate-marquee-right {
+  animation: marquee-right 45s linear infinite;
+}
+
+.marquee-pause:hover .animate-marquee-left,
+.marquee-pause:hover .animate-marquee-right {
+  animation-play-state: paused;
+}
+
+.marquee-mask {
+  mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee-left,
+  .animate-marquee-right {
+    animation: none !important;
+  }
+  .marquee-mask {
+    mask-image: none !important;
+    -webkit-mask-image: none !important;
+  }
+}

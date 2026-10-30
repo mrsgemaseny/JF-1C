@@ -27,6 +27,10 @@
    - Android Mobile: 22 tests PASS (3 files).
    - Architectural Specs: `docs/NFR.md` (Non-Functional Requirements Specification approved).
 
+3. **Landing Page Conversion & Social Proof Upgrade**:
+   - Upgraded `Reviews.tsx` to dual-track continuous GPU-accelerated CSS marquee with pause-on-hover and edge fade mask.
+   - Integrated authentic 2GIS client reviews (RU/KK/EN/ZH 100% key parity) and direct 2GIS rating link (`4,8 · 29 отзывов в 2GIS`). Zero Emojis enforced.
+
 ## NEXT: Roadmap
 - Billing & Payments (WebKassa / Kaspi Pay integration).
 - Custom domain setup (zhanfinance.kz).
