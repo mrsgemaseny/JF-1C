@@ -4,7 +4,7 @@ import { Section } from '@/shared/ui/Section';
 import { Container } from '@/shared/ui/Container';
 import { teamLeader, teamSpecialists, TeamMember } from '@/shared/config/content/team';
 import { useTranslation } from 'react-i18next';
-import { LayoutGrid, Sliders, ChevronLeft, ChevronRight, X, PhoneCall, CheckCircle, Shield } from 'lucide-react';
+import { LayoutGrid, Sliders, ChevronLeft, ChevronRight, X, PhoneCall, CheckCircle, Shield, ArrowRight } from 'lucide-react';
 
 export function Team() {
   const { t } = useTranslation('landing');
@@ -93,9 +93,12 @@ export function Team() {
                     {t(teamLeader.bioKey)}
                   </p>
                 )}
-                <span className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-bold uppercase tracking-wider text-brand-green group-hover:underline">
-                  {t('team_view_details', { defaultValue: 'Подробнее о специалисте →' })}
-                </span>
+                <div className="pt-2">
+                  <span className="inline-flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-brand-green text-brand-beige text-xs sm:text-sm font-bold uppercase tracking-wider shadow-sm group-hover:bg-brand-green/90 group-hover:shadow-md transition-all">
+                    <span>{t('team_view_details', { defaultValue: 'Подробнее о специалисте' })}</span>
+                    <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform" />
+                  </span>
+                </div>
               </div>
             </motion.div>
 
