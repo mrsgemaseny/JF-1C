@@ -24,9 +24,8 @@ function ReviewCard({ review }: ReviewCardProps) {
           {t(review.textKey)}
         </p>
       </div>
-      <div className="mt-4 flex items-center justify-between text-xs text-brand-green/60 font-medium">
-        <span className="font-bold text-brand-green/80">{t(review.nameKey)}</span>
-        <span className="text-[11px] opacity-75">{t(review.companyKey)}</span>
+      <div className="mt-4 text-xs font-bold text-brand-green/80">
+        {t(review.nameKey)}
       </div>
     </article>
   );
