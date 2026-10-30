@@ -96,8 +96,8 @@
   animation: marquee-right 45s linear infinite;
 }
 
-.marquee-pause:hover .animate-marquee-left,
-.marquee-pause:hover .animate-marquee-right {
+.marquee-track-pause:hover .animate-marquee-left,
+.marquee-track-pause:hover .animate-marquee-right {
   animation-play-state: paused;
 }
 

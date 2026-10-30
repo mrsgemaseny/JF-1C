@@ -58,15 +58,15 @@ export function Reviews() {
         </div>
       </Container>
 
-      {/* Marquee dual-track container with pause-on-hover and tight edge fades */}
-      <div className="relative w-full overflow-hidden marquee-pause">
+      {/* Marquee dual-track container with independent per-row pause and tight edge fades */}
+      <div className="relative w-full overflow-hidden">
         {/* Left & Right Tight Edge Fading Overlays (hugged close to screen borders) */}
         <div className="pointer-events-none absolute inset-y-0 left-0 w-6 sm:w-12 bg-gradient-to-r from-[#edf2ee] to-transparent z-10" />
         <div className="pointer-events-none absolute inset-y-0 right-0 w-6 sm:w-12 bg-gradient-to-l from-[#edf2ee] to-transparent z-10" />
 
         <div className="space-y-3.5 sm:space-y-4">
-          {/* Row 1: Leftward continuous scroll */}
-          <div className="overflow-hidden">
+          {/* Row 1: Leftward continuous scroll, pauses independently on hover */}
+          <div className="overflow-hidden marquee-track-pause">
             <div className="flex w-max gap-3.5 sm:gap-4 animate-marquee-left">
               {row1.map((review, idx) => (
                 <ReviewCard key={`r1-${review.id}-${idx}`} review={review} />
@@ -74,8 +74,8 @@ export function Reviews() {
             </div>
           </div>
 
-          {/* Row 2: Rightward continuous scroll */}
-          <div className="overflow-hidden">
+          {/* Row 2: Rightward continuous scroll, pauses independently on hover */}
+          <div className="overflow-hidden marquee-track-pause">
             <div className="flex w-max gap-3.5 sm:gap-4 animate-marquee-right">
               {row2.map((review, idx) => (
                 <ReviewCard key={`r2-${review.id}-${idx}`} review={review} />
