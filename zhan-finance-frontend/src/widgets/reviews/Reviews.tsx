@@ -58,11 +58,11 @@ export function Reviews() {
         </div>
       </Container>
 
-      {/* Marquee dual-track container with pause-on-hover and silky smooth edge fades */}
+      {/* Marquee dual-track container with pause-on-hover and tight edge fades */}
       <div className="relative w-full overflow-hidden marquee-pause">
-        {/* Left & Right Soft Edge Fading Overlays */}
-        <div className="pointer-events-none absolute inset-y-0 left-0 w-20 sm:w-44 bg-gradient-to-r from-[#edf2ee] to-transparent z-10" />
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-20 sm:w-44 bg-gradient-to-l from-[#edf2ee] to-transparent z-10" />
+        {/* Left & Right Tight Edge Fading Overlays (hugged close to screen borders) */}
+        <div className="pointer-events-none absolute inset-y-0 left-0 w-6 sm:w-12 bg-gradient-to-r from-[#edf2ee] to-transparent z-10" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-6 sm:w-12 bg-gradient-to-l from-[#edf2ee] to-transparent z-10" />
 
         <div className="space-y-3.5 sm:space-y-4">
           {/* Row 1: Leftward continuous scroll */}
