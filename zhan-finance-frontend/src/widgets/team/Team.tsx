@@ -73,7 +73,7 @@ export function Team() {
                 {teamLeader.photo ? (
                   <img src={teamLeader.photo} alt={t(teamLeader.nameKey)} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-brand-green/40">
+                  <div className="w-full h-full flex items-center justify-center text-brand-green/35 pb-20 sm:pb-28">
                     <svg className="w-1/2 h-1/2" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
                     </svg>
@@ -120,13 +120,23 @@ export function Team() {
                         className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-brand-green/40 transition-all duration-300 group-hover:scale-105">
+                      <div className="w-full h-full flex items-center justify-center text-brand-green/35 pb-20 sm:pb-28 transition-all duration-300 group-hover:scale-105">
                         <svg className="w-1/3 h-1/3 sm:w-1/2 sm:h-1/2" fill="currentColor" viewBox="0 0 24 24">
                           <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
                         </svg>
                       </div>
                     )}
 
+
+                    <div className="absolute inset-x-0 bottom-0 px-4 sm:px-6 pb-4 sm:pb-6 pt-3 sm:pt-4">
+                      <div className="h-px w-full bg-brand-green/20 mb-3 sm:mb-4" />
+                      <p className="text-sm sm:text-xl font-black leading-[1.15] tracking-tight text-brand-green line-clamp-2">
+                        {t(member.nameKey)}
+                      </p>
+                      <p className="mt-1.5 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-green/55 line-clamp-1">
+                        {t(member.roleKey)}
+                      </p>
+                    </div>
 
                     <div className="absolute inset-0 bg-brand-green/90 backdrop-blur-md p-3 sm:p-6 flex flex-col justify-center items-center text-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 text-brand-beige">
                       <p className="font-bold text-xs sm:text-lg text-brand-beige mb-1 leading-snug line-clamp-2">
@@ -144,14 +154,6 @@ export function Team() {
                         {t('team_more_btn', { defaultValue: 'Открыть профиль' })}
                       </span>
                     </div>
-                  </div>
-                  <div className="pt-3 sm:pt-4 px-1">
-                    <p className="text-sm sm:text-lg font-semibold leading-snug text-brand-green line-clamp-1">
-                      {t(member.nameKey)}
-                    </p>
-                    <p className="mt-0.5 text-xs sm:text-sm text-brand-green/60 line-clamp-1">
-                      {t(member.roleKey)}
-                    </p>
                   </div>
                 </motion.div>
               ))}
@@ -259,6 +261,16 @@ export function Team() {
                           )}
 
 
+                          <div className="absolute inset-x-0 bottom-0 px-4 sm:px-6 pb-4 sm:pb-6 pt-3 sm:pt-4">
+                            <div className="h-px w-full bg-brand-green/20 mb-3 sm:mb-4" />
+                            <p className="text-sm sm:text-xl font-black leading-[1.15] tracking-tight text-brand-green line-clamp-2">
+                              {t(member.nameKey)}
+                            </p>
+                            <p className="mt-1.5 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-green/55 line-clamp-1">
+                              {t(member.roleKey)}
+                            </p>
+                          </div>
+
                           <div className="absolute inset-0 bg-brand-green/90 backdrop-blur-md p-4 sm:p-6 flex flex-col justify-center items-center text-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 text-brand-beige">
                             <p className="font-bold text-sm sm:text-lg text-brand-beige mb-1 leading-snug line-clamp-2">
                               {t(member.nameKey)}
@@ -275,14 +287,6 @@ export function Team() {
                               {t('team_more_btn', { defaultValue: 'Открыть профиль' })}
                             </span>
                           </div>
-                        </div>
-                        <div className="pt-3 sm:pt-4 px-1">
-                          <p className="text-sm sm:text-lg font-semibold leading-snug text-brand-green line-clamp-1">
-                            {t(member.nameKey)}
-                          </p>
-                          <p className="mt-0.5 text-xs sm:text-sm text-brand-green/60 line-clamp-1">
-                            {t(member.roleKey)}
-                          </p>
                         </div>
                       </motion.div>
                     );
