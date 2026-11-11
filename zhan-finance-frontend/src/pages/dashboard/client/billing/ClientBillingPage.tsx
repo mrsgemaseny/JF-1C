@@ -13,7 +13,7 @@ import {
   FileCheck,
   Layers
 } from 'lucide-react';
-import { billingApi, SubscriptionDto } from '@/entities/billing/api/billingApi';
+import { billingApi, InvoiceDto, SubscriptionDto } from '@/entities/billing/api/billingApi';
 import { paymentReceiptApi, PaymentReceiptDto, PaymentRequisitesDto } from '@/entities/billing/api/paymentReceiptApi';
 import { PaymentModal } from '@/features/billing/ui/PaymentModal';
 import { KaspiQrPaymentCard } from '@/features/billing/ui/KaspiQrPaymentCard';
@@ -23,6 +23,8 @@ import { BILLING_PLANS, getLocalizedPlanName, getPlanIdBySubscription } from '@/
 export const ClientBillingPage: React.FC = () => {
   const { t, i18n } = useTranslation(['common', 'landing']);
   const [subscriptions, setSubscriptions] = useState<SubscriptionDto[]>([]);
+  const [invoices, setInvoices] = useState<InvoiceDto[]>([]);
+  const [invoicesError, setInvoicesError] = useState(false);
   const [receipts, setReceipts] = useState<PaymentReceiptDto[]>([]);
   const [requisites, setRequisites] = useState<PaymentRequisitesDto | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
@@ -31,6 +33,7 @@ export const ClientBillingPage: React.FC = () => {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [selectedPlanForModal, setSelectedPlanForModal] = useState<'start' | 'standard' | 'pro' | 'corporate' | undefined>(undefined);
   const [modalAmount, setModalAmount] = useState<number | undefined>(undefined);
+  const [selectedInvoice, setSelectedInvoice] = useState<InvoiceDto | null>(null);
 
   const loadData = async (refreshOnly = false) => {
     if (refreshOnly) {
@@ -40,10 +43,11 @@ export const ClientBillingPage: React.FC = () => {
     }
 
     try {
-      const [subsRes, receiptsRes, reqRes] = await Promise.allSettled([
+      const [subsRes, receiptsRes, reqRes, invoicesRes] = await Promise.allSettled([
         billingApi.getSubscriptions(),
         paymentReceiptApi.getMyReceipts(),
         paymentReceiptApi.getRequisites(),
+        billingApi.getInvoices(),
       ]);
 
       if (subsRes.status === 'fulfilled') {
@@ -54,6 +58,12 @@ export const ClientBillingPage: React.FC = () => {
       }
       if (reqRes.status === 'fulfilled') {
         setRequisites(reqRes.value);
+      }
+      if (invoicesRes.status === 'fulfilled') {
+        setInvoices(invoicesRes.value || []);
+        setInvoicesError(false);
+      } else {
+        setInvoicesError(true);
       }
     } finally {
       setIsLoading(false);
@@ -112,8 +122,16 @@ export const ClientBillingPage: React.FC = () => {
   };
 
   const openPaymentForPlan = (planId?: 'start' | 'standard' | 'pro' | 'corporate', amount?: number) => {
+    setSelectedInvoice(null);
     setSelectedPlanForModal(planId);
     setModalAmount(amount);
+    setIsPaymentModalOpen(true);
+  };
+
+  const openPaymentForInvoice = (invoice: InvoiceDto) => {
+    setSelectedInvoice(invoice);
+    setSelectedPlanForModal(undefined);
+    setModalAmount(invoice.amount);
     setIsPaymentModalOpen(true);
   };
 
@@ -319,6 +337,66 @@ export const ClientBillingPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Client invoices */}
+      <section className="space-y-4" aria-label={t('billing.invoicesTitle', 'Счета на оплату')}>
+        <div className="flex items-end justify-between gap-4">
+          <div>
+            <h2 className="flex items-center gap-2 text-lg font-bold text-gray-900">
+              <FileCheck className="h-5 w-5 text-emerald-700" />
+              {t('billing.invoicesTitle', 'Счета на оплату')}
+            </h2>
+            <p className="mt-1 text-xs text-gray-500">{t('billing.invoicesDesc', 'Выставленные счета и их текущий статус')}</p>
+          </div>
+          <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-gray-600 ring-1 ring-gray-200">{invoices.length}</span>
+        </div>
+        {invoicesError ? (
+          <div role="alert" className="rounded-2xl border border-amber-200 bg-amber-50 px-6 py-6 text-sm text-amber-900">
+            {t('billing.invoicesUnavailable', 'Не удалось загрузить счета. Повторите попытку позже.')}
+            <button type="button" onClick={() => loadData(true)} className="ml-3 font-bold underline underline-offset-2">{t('common.refresh', 'Обновить')}</button>
+          </div>
+        ) : invoices.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-gray-300 bg-white px-6 py-8 text-center">
+            <FileCheck className="mx-auto h-8 w-8 text-gray-300" />
+            <p className="mt-3 text-sm font-semibold text-gray-700">{t('billing.noInvoices', 'Счетов пока нет')}</p>
+            <p className="mt-1 text-xs text-gray-500">{t('billing.noInvoicesDesc', 'Когда счёт будет выставлен, он появится здесь.')}</p>
+          </div>
+        ) : (
+          <div className="grid gap-3">
+            {[...invoices].sort((a, b) => b.id - a.id).map((invoice) => {
+              const payable = invoice.status === 'ISSUED' || invoice.status === 'OVERDUE';
+              const statusText = invoice.status === 'PAID' ? t('billing.invoicePaid', 'Оплачен')
+                : invoice.status === 'OVERDUE' ? t('billing.invoiceOverdue', 'Просрочен')
+                : invoice.status === 'ISSUED' ? t('billing.invoiceIssued', 'Ожидает оплаты')
+                : invoice.status === 'DRAFT' ? t('billing.invoiceDraft', 'Черновик') : t('billing.invoiceCanceled', 'Отменён');
+              return (
+                <article key={invoice.id} className="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-xs sm:flex-row sm:items-center sm:justify-between sm:p-5">
+                  <div className="flex min-w-0 items-start gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
+                      <FileCheck className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold text-gray-500">{t('billing.invoiceNumber', { defaultValue: 'Счёт №{{id}}', id: invoice.id })} · {t('billing.dueBy', 'до')} {formatDate(invoice.dueDate)}</p>
+                      <h3 className="mt-0.5 truncate text-sm font-bold text-gray-900">{invoice.title}</h3>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between gap-4 sm:justify-end">
+                    <div className="text-right">
+                      <p className="font-mono text-base font-bold text-gray-900">{invoice.amount.toLocaleString('ru-RU')} ₸</p>
+                      <span className={`text-xs font-semibold ${invoice.status === 'PAID' ? 'text-emerald-700' : invoice.status === 'OVERDUE' ? 'text-rose-600' : 'text-gray-500'}`}>{statusText}</span>
+                    </div>
+                    {payable && (
+                      <button type="button" onClick={() => openPaymentForInvoice(invoice)} className="shrink-0 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white transition-colors hover:bg-emerald-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600">
+                        {t('billing.payInvoice', 'Оплатить')}
+                      </button>
+                    )}
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
       {/* Available Plans (4 Tariffs) */}
       <div className="space-y-4">
         <div>
@@ -504,6 +582,8 @@ export const ClientBillingPage: React.FC = () => {
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
         subscriptionId={currentSubscription?.id}
+        invoiceId={selectedInvoice?.id}
+        invoiceTitle={selectedInvoice?.title}
         planName={selectedPlanForModal ? BILLING_PLANS.find(p => p.id === selectedPlanForModal)?.defaultName : currentSubscription?.planName}
         initialPlanId={selectedPlanForModal}
         defaultAmount={modalAmount || currentSubscription?.monthlyPrice || 100000}

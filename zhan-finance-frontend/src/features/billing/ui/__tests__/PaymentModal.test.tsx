@@ -29,6 +29,7 @@ vi.mock('@/entities/billing/api/paymentReceiptApi', () => ({
       iban: 'KZ123456789012345678',
       kbe: '17',
       bankName: 'АО Каспий Банк',
+      kaspiPayUrl: 'https://pay.kaspi.kz/pay/test',
     }),
     submitReceipt: vi.fn().mockResolvedValue({ id: 1, status: 'AWAITING_REVIEW' }),
   },
@@ -140,6 +141,18 @@ describe('PaymentModal Component', () => {
       expect(onSuccess).toHaveBeenCalledTimes(1);
       expect(screen.getByText('Чек успешно отправлен')).toBeInTheDocument();
     });
+  });
+
+  it('sends the selected invoice ID with a receipt', async () => {
+    render(<PaymentModal isOpen={true} onClose={onClose} onSuccess={onSuccess}
+      invoiceId={42} invoiceTitle="Бухгалтерское сопровождение" defaultAmount={90000} />);
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    fireEvent.change(input, { target: { files: [new File(['%PDF'], 'receipt.pdf', { type: 'application/pdf' })] } });
+    fireEvent.click(screen.getByText('Отправить чек на проверку'));
+    await waitFor(() => expect(paymentReceiptApi.submitReceipt).toHaveBeenCalledTimes(1));
+    const data = vi.mocked(paymentReceiptApi.submitReceipt).mock.calls[0][0];
+    expect(data.get('invoiceId')).toBe('42');
+    expect(data.get('amount')).toBe('90000');
   });
 
   it('displays only selected plan card when a plan is selected and allows changing plan', async () => {

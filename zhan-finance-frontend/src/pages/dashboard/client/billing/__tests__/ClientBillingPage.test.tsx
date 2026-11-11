@@ -13,7 +13,7 @@ vi.mock('react-i18next', () => ({
     t: (key: string, defaultValOrOptions?: any) => {
       if (typeof defaultValOrOptions === 'string') return defaultValOrOptions;
       if (defaultValOrOptions && typeof defaultValOrOptions === 'object' && defaultValOrOptions.defaultValue) {
-        return defaultValOrOptions.defaultValue;
+        return String(defaultValOrOptions.defaultValue).replace('{{id}}', String(defaultValOrOptions.id ?? ''));
       }
       return key;
     },
@@ -25,6 +25,7 @@ vi.mock('react-i18next', () => ({
 vi.mock('@/entities/billing/api/billingApi', () => ({
   billingApi: {
     getSubscriptions: vi.fn(),
+    getInvoices: vi.fn(),
   },
 }));
 
@@ -41,6 +42,7 @@ vi.mock('@/entities/billing/api/paymentReceiptApi', () => ({
 describe('ClientBillingPage Component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(billingApi.getInvoices).mockResolvedValue([]);
     vi.mocked(paymentReceiptApi.getRequisites).mockResolvedValue({
       recipientName: 'ТОО ЖАН FINANCE',
       bin: '240140012345',
@@ -136,5 +138,19 @@ describe('ClientBillingPage Component', () => {
     expect(screen.getByText('Стандарт')).toBeInTheDocument();
     expect(screen.getByText('Про')).toBeInTheDocument();
     expect(screen.getByText('Корпоративный')).toBeInTheDocument();
+  });
+
+  it('shows an issued invoice and opens payment for that invoice', async () => {
+    vi.mocked(billingApi.getSubscriptions).mockResolvedValueOnce([]);
+    vi.mocked(paymentReceiptApi.getMyReceipts).mockResolvedValueOnce([]);
+    vi.mocked(billingApi.getInvoices).mockResolvedValueOnce([
+      { id: 42, clientId: 1, title: 'Бухгалтерское сопровождение', amount: 90000, status: 'ISSUED', dueDate: '2026-11-30' },
+    ]);
+
+    render(<ClientBillingPage />);
+    await waitFor(() => expect(screen.getByText('Бухгалтерское сопровождение')).toBeInTheDocument());
+    fireEvent.click(screen.getByText('Оплатить'));
+    expect(screen.getByText('Оплата счёта №42')).toBeInTheDocument();
+    expect(screen.getByText('Сумма по счёту №42')).toBeInTheDocument();
   });
 });

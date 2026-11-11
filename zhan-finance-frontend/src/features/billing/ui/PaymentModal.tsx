@@ -9,6 +9,8 @@ interface PaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
   subscriptionId?: number;
+  invoiceId?: number;
+  invoiceTitle?: string;
   planName?: string;
   defaultAmount?: number;
   initialPlanId?: 'start' | 'standard' | 'pro' | 'corporate';
@@ -19,6 +21,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   isOpen,
   onClose,
   subscriptionId,
+  invoiceId,
+  invoiceTitle,
   planName,
   defaultAmount,
   initialPlanId,
@@ -26,6 +30,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 }) => {
   const { t } = useTranslation(['common', 'landing']);
   const [requisites, setRequisites] = useState<PaymentRequisitesDto | null>(null);
+  const [requisitesError, setRequisitesError] = useState(false);
   const [activePaymentMethod, setActivePaymentMethod] = useState<'kaspi' | 'bank'>('kaspi');
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
@@ -39,22 +44,18 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
+      setRequisites(null);
+      setRequisitesError(false);
       paymentReceiptApi.getRequisites()
         .then(setRequisites)
-        .catch(() => {
-          setRequisites({
-            recipientName: 'ТОО ЖАН FINANCE',
-            bin: '240140012345',
-            iban: 'KZ123456789012345678',
-            kbe: '17',
-            bankName: 'АО Каспий Банк',
-            kaspiPayUrl: 'https://pay.kaspi.kz/pay/ooixwvwq',
-          });
-        });
+        .catch(() => setRequisitesError(true));
 
-      // Priority: 1. initialPlanId, 2. planId detected from planName or defaultAmount, 3. standard plan
-      const detectedPlanId = initialPlanId || getPlanIdBySubscription(planName, defaultAmount);
-      if (detectedPlanId) {
+      // An issued invoice fixes the payable amount; plan selection remains for manual renewals.
+      const detectedPlanId = invoiceId ? null : initialPlanId || getPlanIdBySubscription(planName, defaultAmount);
+      if (invoiceId) {
+        setSelectedPlanId(null);
+        setAmount(String(defaultAmount ?? ''));
+      } else if (detectedPlanId) {
         setSelectedPlanId(detectedPlanId);
         const plan = BILLING_PLANS.find((p) => p.id === detectedPlanId);
         const planPrice = plan ? (plan.discountPrice ?? plan.price) : defaultAmount;
@@ -72,7 +73,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
       setIsSuccess(false);
       setIsChangingPlan(false);
     }
-  }, [isOpen, defaultAmount, initialPlanId, planName]);
+  }, [isOpen, defaultAmount, initialPlanId, planName, invoiceId]);
 
   if (!isOpen) return null;
 
@@ -152,6 +153,9 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
       if (subscriptionId) {
         formData.append('subscriptionId', String(subscriptionId));
       }
+      if (invoiceId) {
+        formData.append('invoiceId', String(invoiceId));
+      }
       formData.append('file', file);
 
       await paymentReceiptApi.submitReceipt(formData);
@@ -180,11 +184,11 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
         <div className="shrink-0 flex items-center justify-between px-5 py-3 border-b border-gray-100 bg-white">
           <div className="min-w-0 pr-3">
             <h3 className="text-base sm:text-lg font-bold text-gray-900 truncate">
-              {t('billing.modalTitle', { defaultValue: 'Оплата тарифа' })}
+              {invoiceId ? t('billing.invoicePaymentTitle', { defaultValue: 'Оплата счёта №{{id}}', id: invoiceId }) : t('billing.modalTitle', { defaultValue: 'Оплата тарифа' })}
             </h3>
-            {planSubtitle && (
+            {(invoiceTitle || (!invoiceId && planSubtitle)) && (
               <p className="text-xs text-gray-500 font-medium truncate">
-                {planSubtitle}
+                {invoiceTitle || planSubtitle}
               </p>
             )}
           </div>
@@ -259,7 +263,12 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
               </div>
 
               {/* Plan Display / Selection */}
-              {selectedPlanItem && !isChangingPlan ? (
+              {invoiceId ? (
+                <div className="flex items-center justify-between gap-3 rounded-xl border border-emerald-200 bg-emerald-50/70 p-3 text-xs">
+                  <span className="font-semibold text-emerald-900">{t('billing.invoiceAmount', { defaultValue: 'Сумма по счёту №{{id}}', id: invoiceId })}</span>
+                  <span className="shrink-0 font-mono text-base font-bold text-emerald-900">{Number(amount).toLocaleString('ru-RU')} ₸</span>
+                </div>
+              ) : selectedPlanItem && !isChangingPlan ? (
                 <div className="flex items-center justify-between p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs">
                   <div className="flex items-center gap-2 min-w-0">
                     <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider shrink-0">
@@ -337,14 +346,18 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
               )}
 
               {/* Payment Details (Kaspi QR vs Bank Requisites) */}
-              {activePaymentMethod === 'kaspi' ? (
+              {requisitesError ? (
+                <div role="alert" className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+                  {t('billing.requisitesUnavailable', { defaultValue: 'Реквизиты сейчас недоступны. Обновите страницу позже или свяжитесь с поддержкой перед оплатой.' })}
+                </div>
+              ) : activePaymentMethod === 'kaspi' && requisites?.kaspiPayUrl ? (
                 <KaspiQrPaymentCard
-                  kaspiPayUrl={requisites?.kaspiPayUrl || 'https://pay.kaspi.kz/pay/ooixwvwq'}
-                  recipientName={requisites?.recipientName || 'ТОО ЖАН FINANCE'}
-                  bin={requisites?.bin || '240140012345'}
+                  kaspiPayUrl={requisites.kaspiPayUrl}
+                  recipientName={requisites.recipientName}
+                  bin={requisites.bin}
                   amount={amount}
                 />
-              ) : requisites && (
+              ) : activePaymentMethod === 'bank' && requisites ? (
                 <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 space-y-1.5 text-xs">
                   <div className="flex items-center justify-between text-gray-600">
                     <span>{t('billing.recipient', { defaultValue: 'Получатель' })}:</span>
@@ -382,6 +395,14 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                     <span>{t('billing.bank', { defaultValue: 'Банк' })}:</span>
                     <span className="font-semibold text-gray-900">{requisites.bankName} (КБе {requisites.kbe})</span>
                   </div>
+                </div>
+              ) : activePaymentMethod === 'kaspi' && requisites ? (
+                <div role="alert" className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+                  {t('billing.requisitesUnavailable', { defaultValue: 'Реквизиты сейчас недоступны. Обновите страницу позже или свяжитесь с поддержкой перед оплатой.' })}
+                </div>
+              ) : (
+                <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 text-center text-xs text-gray-500">
+                  {t('billing.loadingRequisites', { defaultValue: 'Загружаем платёжные реквизиты…' })}
                 </div>
               )}
 

@@ -17,7 +17,6 @@ import {
   Settings,
   MessageCircle,
   CalendarDays,
-  X,
   BookOpen,
   CreditCard,
   RefreshCw,
@@ -27,13 +26,12 @@ import {
   ShieldCheck,
   BarChart2,
   FileCheck,
+  Menu,
 } from 'lucide-react';
 import { useNotifications } from '@/features/notifications/NotificationContext';
 import { useChatNotifications } from '@/features/chat/ChatNotificationContext';
-import { API_BASE_URL, getSecureImageUrl } from '@/shared/api/http';
+import { getSecureImageUrl } from '@/shared/api/http';
 import { twMerge } from 'tailwind-merge';
-import LogoImage from '@/shared/assets/icons/logo.png';
-import { BrandLogo } from '@/shared/ui/BrandLogo';
 import { ROUTES } from '@/shared/config/routes';
 
 const NAV_ICONS: Record<string, React.ReactNode> = {
@@ -85,7 +83,7 @@ export function DashboardSidebar({
   isMobileOpen, 
   onMobileClose, 
   isDesktopCollapsed, 
-  onDesktopToggle 
+  onDesktopToggle,
 }: DashboardSidebarProps) {
   const { user, logout } = useAuth();
   const location = useLocation();
@@ -129,36 +127,33 @@ export function DashboardSidebar({
       )}
 
       <aside className={twMerge(
-        "fixed inset-y-0 left-0 z-50 flex flex-col bg-white border-r border-gray-200 transition-all duration-300 ease-in-out shadow-2xl lg:shadow-none lg:static lg:translate-x-0",
+        "fixed inset-y-0 left-0 z-50 flex flex-col bg-white border-r border-gray-100 transition-all duration-300 ease-in-out shadow-2xl lg:shadow-none lg:static lg:translate-x-0",
         isMobileOpen ? "translate-x-0" : "-translate-x-full",
-        isDesktopCollapsed ? "lg:w-20" : "w-[280px] lg:w-64"
+        isDesktopCollapsed ? "w-[280px] lg:w-[76px]" : "w-[280px] lg:w-[272px]"
       )}>
-        {/* Logo area */}
-        <div className="flex items-center justify-between px-4 lg:px-6 py-4 border-b border-gray-100 min-h-[64px]">
-          <Link to="/" className="flex items-center gap-2.5 overflow-hidden flex-1 min-w-0" onClick={() => { if (window.innerWidth < 1024) onMobileClose(); }}>
-            {isDesktopCollapsed ? (
-              <BrandLogo variant="square" className="w-8 h-8 shrink-0" />
-            ) : (
-              <BrandLogo className="h-7 w-auto shrink-0" />
-            )}
-          </Link>
-          
-          {/* Mobile Close Button */}
-          <button onClick={onMobileClose} className="lg:hidden p-2 text-gray-500 hover:bg-gray-100 rounded-lg">
-            <X size={20} />
+        {/* Sidebar menu control */}
+        <div className={twMerge(
+          "flex items-center border-b border-gray-100 min-h-[72px]",
+          isDesktopCollapsed ? "px-3 lg:justify-center" : "px-4 lg:px-5 lg:justify-start"
+        )}>
+          <button
+            type="button"
+            onClick={onDesktopToggle}
+            aria-label={isDesktopCollapsed ? 'Развернуть меню' : 'Свернуть меню'}
+            aria-expanded={!isDesktopCollapsed}
+            className="hidden lg:flex h-11 items-center gap-3 rounded-xl px-3 text-gray-600 hover:bg-brand-green/10 hover:text-brand-green focus-visible:outline-2 focus-visible:outline-brand-green transition-colors"
+          >
+            <Menu size={22} className="shrink-0" />
+            {!isDesktopCollapsed && <span className="text-sm font-semibold">Меню</span>}
+          </button>
+          <button type="button" onClick={onMobileClose} aria-label="Закрыть меню" className="lg:hidden flex items-center gap-3 rounded-xl p-2 text-gray-600 hover:bg-gray-100 transition-colors">
+            <Menu size={20} />
+            <span className="text-sm font-semibold">Меню</span>
           </button>
         </div>
 
-        {/* Desktop Collapse Button */}
-        <button 
-          onClick={onDesktopToggle}
-          className="hidden lg:flex absolute -right-3 top-6 w-6 h-6 bg-white border border-gray-200 rounded-full items-center justify-center text-gray-400 hover:text-brand-green hover:border-brand-green shadow-sm z-50 transition-colors"
-        >
-          <ChevronRight size={14} className={twMerge("transition-transform duration-300", !isDesktopCollapsed && "rotate-180")} />
-        </button>
-
         {/* Nav */}
-        <nav className="flex-1 py-4 space-y-1 overflow-y-auto overflow-x-hidden px-3 relative">
+        <nav aria-label="Основная навигация" className="flex-1 py-5 space-y-1 overflow-y-auto overflow-x-hidden px-3 relative">
           {navItems.map((item) => {
             const isActive = activeItem?.href === item.href;
             const icon = NAV_ICONS[item.label] ?? <ChevronRight size={16} />;
@@ -205,19 +200,20 @@ export function DashboardSidebar({
                 to={item.href}
                 onClick={() => { if (window.innerWidth < 1024) onMobileClose(); }}
                 className={twMerge(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group relative",
+                  "flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-colors duration-150 group relative",
                   isActive
-                    ? 'bg-brand-green text-white shadow-sm'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
-                  isDesktopCollapsed ? 'justify-center px-0' : ''
+                    ? 'bg-brand-green/10 text-brand-green'
+                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900',
+                  isDesktopCollapsed ? 'lg:justify-center lg:px-0' : ''
                 )}
                 title={isDesktopCollapsed ? translatedLabel : undefined}
+                aria-current={isActive ? 'page' : undefined}
               >
-                <span className={twMerge("shrink-0", isActive ? 'text-white/90' : 'text-gray-400 group-hover:text-brand-green')}>
+                <span className={twMerge("shrink-0", isActive ? 'text-brand-green' : 'text-gray-400 group-hover:text-brand-green')}>
                   {icon}
                 </span>
                 
-                {!isDesktopCollapsed && (
+                <span className={twMerge("flex-1 min-w-0 items-center", isDesktopCollapsed ? "flex lg:hidden" : "flex")}>
                   <>
                     <span className="flex-1 truncate">{translatedLabel}</span>
                     
@@ -233,11 +229,8 @@ export function DashboardSidebar({
                       </span>
                     )}
                     
-                    {isActive && item.label !== 'Notifications' && item.label !== 'Chat' && (
-                      <ChevronRight size={14} className="opacity-50 shrink-0" />
-                    )}
                   </>
-                )}
+                </span>
 
                 {/* Always show dot indicator if collapsed and has notifications */}
                 {isDesktopCollapsed && item.label === 'Notifications' && unreadCount > 0 && (
@@ -255,7 +248,7 @@ export function DashboardSidebar({
 
         {/* User block */}
         <div className="p-4 border-t border-gray-100">
-          <div className={twMerge("flex items-center gap-3 mb-4", isDesktopCollapsed && "justify-center")}>
+          <div className={twMerge("flex items-center gap-3 mb-4", isDesktopCollapsed && "lg:justify-center")}>
             <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-green to-green-600 flex items-center justify-center shrink-0 overflow-hidden shadow-sm">
               {user.avatarUrl ? (
                 <img 
@@ -267,23 +260,21 @@ export function DashboardSidebar({
                 <User size={20} className="text-white" />
               )}
             </div>
-            {!isDesktopCollapsed && (
-              <div className="flex-1 min-w-0">
+            <div className={twMerge("flex-1 min-w-0", isDesktopCollapsed && "lg:hidden")}>
                 <p className="text-xs font-semibold text-gray-800 truncate">{user.email}</p>
                 <p className={`text-[11px] mt-0.5 truncate ${user.role === 'ADMIN' ? 'text-blue-600 font-semibold' : 'text-gray-400'}`}>{t(`sidebar.roles.${user.role}`, { defaultValue: user.role })}</p>
-              </div>
-            )}
+            </div>
           </div>
           <button
             onClick={logout}
             title={isDesktopCollapsed ? t('sidebar.logout') : undefined}
             className={twMerge(
               "flex items-center w-full rounded-xl text-sm font-medium text-gray-500 hover:bg-red-50 hover:text-red-600 transition-colors",
-              isDesktopCollapsed ? "justify-center p-2" : "gap-2 px-3 py-2.5"
+              isDesktopCollapsed ? "lg:justify-center lg:p-2 gap-2 px-3 py-2.5" : "gap-2 px-3 py-2.5"
             )}
           >
             <LogOut size={16} />
-            {!isDesktopCollapsed && <span>{t('sidebar.logout')}</span>}
+            <span className={isDesktopCollapsed ? 'lg:hidden' : ''}>{t('sidebar.logout')}</span>
           </button>
         </div>
       </aside>

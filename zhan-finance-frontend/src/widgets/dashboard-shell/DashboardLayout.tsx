@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import { ErrorBoundary } from '@/shared/ui/ErrorBoundary';
 import { DashboardSidebar } from './DashboardSidebar';
-import { BrandLogo } from '@/shared/ui/BrandLogo';
 import { Menu } from 'lucide-react';
 import { GlobalSearch } from '@/widgets/search/GlobalSearch';
 import { NotificationBell } from './NotificationBell';
@@ -140,7 +139,7 @@ function HeaderProfile() {
 
 export function DashboardLayout() {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false);
+  const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(true);
 
   return (
     <div className="flex h-[100dvh] bg-gray-50 overflow-hidden">
@@ -154,24 +153,24 @@ export function DashboardLayout() {
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Mobile Topbar */}
         <header className="lg:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-gray-200">
-          <Link to="/" className="flex items-center">
-            <BrandLogo className="h-7 w-auto" />
-          </Link>
+          <button
+            type="button"
+            onClick={() => setIsMobileOpen(p => !p)}
+            aria-label="Открыть меню"
+            aria-expanded={isMobileOpen}
+            className="flex h-10 w-10 items-center justify-center rounded-xl text-gray-700 hover:bg-brand-green/10 hover:text-brand-green focus-visible:outline-2 focus-visible:outline-brand-green"
+          >
+            <Menu size={22} />
+          </button>
           <div className="flex items-center gap-3">
             <HeaderProfile />
-            <button 
-              onClick={() => setIsMobileOpen(true)}
-              className="p-2 -mr-2 text-gray-600 hover:bg-gray-100 rounded-lg shrink-0"
-            >
-              <Menu size={24} />
-            </button>
           </div>
         </header>
 
         {/* Main Content Area */}
         <main className="flex-1 min-w-0 overflow-x-hidden overflow-y-auto relative flex flex-col">
           {/* Desktop Topbar */}
-          <div className="hidden lg:flex items-center justify-between px-8 py-4 border-b border-gray-200 bg-white z-10">
+          <div className="hidden lg:flex items-center justify-between gap-5 px-6 py-4 border-b border-gray-200 bg-white z-10">
             <GlobalSearch />
             <div className="flex items-center gap-3 pl-4 ml-auto">
               <LanguageSwitcher />
