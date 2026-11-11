@@ -132,19 +132,19 @@ export function DashboardSidebar({
         isDesktopCollapsed ? "w-[280px] lg:w-[76px]" : "w-[280px] lg:w-[272px]"
       )}>
         {/* Sidebar menu control */}
-        <div className={twMerge(
-          "flex items-center border-b border-gray-100 min-h-[72px]",
-          isDesktopCollapsed ? "px-3 lg:justify-center" : "px-4 lg:px-5 lg:justify-start"
-        )}>
+        <div className="flex items-center border-b border-gray-100 min-h-[72px] px-4 lg:px-[14px]">
           <button
             type="button"
             onClick={onDesktopToggle}
             aria-label={isDesktopCollapsed ? 'Развернуть меню' : 'Свернуть меню'}
             aria-expanded={!isDesktopCollapsed}
-            className="hidden lg:flex h-11 items-center gap-3 rounded-xl px-3 text-gray-600 hover:bg-brand-green/10 hover:text-brand-green focus-visible:outline-2 focus-visible:outline-brand-green transition-colors"
+            className="relative hidden lg:flex h-11 w-full items-center overflow-hidden rounded-xl text-gray-600 hover:bg-brand-green/10 hover:text-brand-green focus-visible:outline-2 focus-visible:outline-brand-green transition-colors"
           >
-            <Menu size={22} className="shrink-0" />
-            {!isDesktopCollapsed && <span className="text-sm font-semibold">Меню</span>}
+            <Menu size={22} className="ml-[13px] shrink-0" />
+            <span className={twMerge(
+              "absolute left-12 whitespace-nowrap text-sm font-semibold transition-opacity duration-300 ease-in-out",
+              isDesktopCollapsed ? "opacity-0" : "opacity-100"
+            )}>Меню</span>
           </button>
           <button type="button" onClick={onMobileClose} aria-label="Закрыть меню" className="lg:hidden flex items-center gap-3 rounded-xl p-2 text-gray-600 hover:bg-gray-100 transition-colors">
             <Menu size={20} />
@@ -204,7 +204,7 @@ export function DashboardSidebar({
                   isActive
                     ? 'bg-brand-green/10 text-brand-green'
                     : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900',
-                  isDesktopCollapsed ? 'lg:justify-center lg:px-0' : ''
+                  isDesktopCollapsed ? 'lg:px-3' : ''
                 )}
                 title={isDesktopCollapsed ? translatedLabel : undefined}
                 aria-current={isActive ? 'page' : undefined}
@@ -213,7 +213,10 @@ export function DashboardSidebar({
                   {icon}
                 </span>
                 
-                <span className={twMerge("flex-1 min-w-0 items-center", isDesktopCollapsed ? "flex lg:hidden" : "flex")}>
+                <span className={twMerge(
+                  "flex min-w-0 flex-1 items-center overflow-hidden whitespace-nowrap transition-[max-width,opacity] duration-300 ease-in-out",
+                  isDesktopCollapsed ? "lg:max-w-0 lg:opacity-0" : "lg:max-w-[190px] lg:opacity-100"
+                )}>
                   <>
                     <span className="flex-1 truncate">{translatedLabel}</span>
                     
@@ -248,7 +251,7 @@ export function DashboardSidebar({
 
         {/* User block */}
         <div className="p-4 border-t border-gray-100">
-          <div className={twMerge("flex items-center gap-3 mb-4", isDesktopCollapsed && "lg:justify-center")}>
+          <div className="flex items-center gap-3 mb-4">
             <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-green to-green-600 flex items-center justify-center shrink-0 overflow-hidden shadow-sm">
               {user.avatarUrl ? (
                 <img 
@@ -260,7 +263,10 @@ export function DashboardSidebar({
                 <User size={20} className="text-white" />
               )}
             </div>
-            <div className={twMerge("flex-1 min-w-0", isDesktopCollapsed && "lg:hidden")}>
+            <div className={twMerge(
+              "flex-1 min-w-0 overflow-hidden whitespace-nowrap transition-[max-width,opacity] duration-300 ease-in-out",
+              isDesktopCollapsed ? "lg:max-w-0 lg:opacity-0" : "lg:max-w-[190px] lg:opacity-100"
+            )}>
                 <p className="text-xs font-semibold text-gray-800 truncate">{user.email}</p>
                 <p className={`text-[11px] mt-0.5 truncate ${user.role === 'ADMIN' ? 'text-blue-600 font-semibold' : 'text-gray-400'}`}>{t(`sidebar.roles.${user.role}`, { defaultValue: user.role })}</p>
             </div>
@@ -270,11 +276,14 @@ export function DashboardSidebar({
             title={isDesktopCollapsed ? t('sidebar.logout') : undefined}
             className={twMerge(
               "flex items-center w-full rounded-xl text-sm font-medium text-gray-500 hover:bg-red-50 hover:text-red-600 transition-colors",
-              isDesktopCollapsed ? "lg:justify-center lg:p-2 gap-2 px-3 py-2.5" : "gap-2 px-3 py-2.5"
+              "gap-2 px-3 py-2.5"
             )}
           >
             <LogOut size={16} />
-            <span className={isDesktopCollapsed ? 'lg:hidden' : ''}>{t('sidebar.logout')}</span>
+            <span className={twMerge(
+              "overflow-hidden whitespace-nowrap transition-[max-width,opacity] duration-300 ease-in-out",
+              isDesktopCollapsed ? "lg:max-w-0 lg:opacity-0" : "lg:max-w-[190px] lg:opacity-100"
+            )}>{t('sidebar.logout')}</span>
           </button>
         </div>
       </aside>
