@@ -32,7 +32,7 @@
    - Integrated authentic 2GIS client reviews (RU/KK/EN/ZH 100% key parity) and direct 2GIS rating link (`4,8 · 29 отзывов в 2GIS`). Zero Emojis enforced.
 
 ## NEXT: Roadmap
-- Billing & Payments (WebKassa / Kaspi Pay integration).
+- Billing & Payments (Epic-12): Kaspi WebPay official enterprise integration (`kaspi.kz/webpay/partnership`), strict architectural ban on unofficial aggregators (ApiPay/scrapers). Merchant: ТОО "ЖАН FINANCE" (БИН 2208-4004-1299). Auto-fiscalization via WebKassa.
 - Custom domain setup (zhanfinance.kz).
 - Staging environment on Fly.io.
 - Epic-20 (AI Assistant) & Epic-21 (1C Data Gateway & Fiscal Hub).

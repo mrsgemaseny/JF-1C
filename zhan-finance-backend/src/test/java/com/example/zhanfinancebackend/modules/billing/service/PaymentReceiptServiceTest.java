@@ -98,6 +98,7 @@ class PaymentReceiptServiceTest {
 
         invoice = new Invoice(client, "Monthly Subscription", BigDecimal.valueOf(50000), LocalDate.now().plusDays(5));
         invoice.setId(200L);
+        invoice.setStatus(Invoice.InvoiceStatus.ISSUED);
     }
 
     @Test
@@ -215,6 +216,7 @@ class PaymentReceiptServiceTest {
         receipt.setId(500L);
 
         when(paymentReceiptRepository.findByIdForUpdate(500L)).thenReturn(Optional.of(receipt));
+        when(invoiceRepository.findByIdForPaymentUpdate(200L)).thenReturn(Optional.of(invoice));
         when(paymentReceiptRepository.save(any(PaymentReceipt.class))).thenReturn(receipt);
 
         PaymentReceiptDto result = paymentReceiptService.confirmReceipt(admin, 500L);
@@ -226,6 +228,34 @@ class PaymentReceiptServiceTest {
 
         verify(accessService).assertCanReview(admin);
         verify(notificationService).createNotification(eq(client), anyString(), anyString(), eq("/client/billing"));
+    }
+
+    @Test
+    void confirmReceipt_rejectsInvoicePaidAfterUpload() {
+        PaymentReceipt receipt = new PaymentReceipt(
+                client, subscription, invoice, BigDecimal.valueOf(50000), "KZT", "receipts/test.pdf");
+        receipt.setId(503L);
+        invoice.setStatus(Invoice.InvoiceStatus.PAID);
+        when(paymentReceiptRepository.findByIdForUpdate(503L)).thenReturn(Optional.of(receipt));
+        when(invoiceRepository.findByIdForPaymentUpdate(200L)).thenReturn(Optional.of(invoice));
+
+        assertThatThrownBy(() -> paymentReceiptService.confirmReceipt(admin, 503L))
+                .isInstanceOf(ConflictException.class);
+        assertThat(receipt.getStatus()).isEqualTo(PaymentReceiptStatus.AWAITING_REVIEW);
+        assertThat(subscription.getStatus()).isEqualTo(Subscription.SubscriptionStatus.PENDING);
+    }
+
+    @Test
+    void confirmReceipt_rejectsAmountMismatch() {
+        PaymentReceipt receipt = new PaymentReceipt(
+                client, subscription, invoice, BigDecimal.valueOf(40000), "KZT", "receipts/test.pdf");
+        receipt.setId(504L);
+        when(paymentReceiptRepository.findByIdForUpdate(504L)).thenReturn(Optional.of(receipt));
+        when(invoiceRepository.findByIdForPaymentUpdate(200L)).thenReturn(Optional.of(invoice));
+
+        assertThatThrownBy(() -> paymentReceiptService.confirmReceipt(admin, 504L))
+                .isInstanceOf(ConflictException.class);
+        assertThat(subscription.getStatus()).isEqualTo(Subscription.SubscriptionStatus.PENDING);
     }
 
     @Test
@@ -310,6 +340,7 @@ class PaymentReceiptServiceTest {
         receipt.setId(501L);
 
         when(paymentReceiptRepository.findByIdForUpdate(501L)).thenReturn(Optional.of(receipt));
+        when(invoiceRepository.findByIdForPaymentUpdate(200L)).thenReturn(Optional.of(invoice));
         when(paymentReceiptRepository.save(any(PaymentReceipt.class))).thenReturn(receipt);
 
         paymentReceiptService.confirmReceipt(admin, 501L);
@@ -351,6 +382,7 @@ class PaymentReceiptServiceTest {
         assertThat(requisites.recipientName()).isNotBlank();
         assertThat(requisites.bin()).isNotBlank();
         assertThat(requisites.iban()).isNotBlank();
+        assertThat(requisites.kaspiPayUrl()).isEqualTo("https://pay.kaspi.kz/pay/ooixwvwq");
     }
 
     @Test
@@ -403,6 +435,7 @@ class PaymentReceiptServiceTest {
         receipt.setId(500L);
 
         when(paymentReceiptRepository.findByIdForUpdate(500L)).thenReturn(Optional.of(receipt));
+        when(invoiceRepository.findByIdForPaymentUpdate(200L)).thenReturn(Optional.of(invoice));
         when(paymentReceiptRepository.save(any(PaymentReceipt.class))).thenReturn(receipt);
 
         serviceWithoutNotification.confirmReceipt(admin, 500L);

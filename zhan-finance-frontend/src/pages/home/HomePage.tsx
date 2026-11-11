@@ -6,6 +6,7 @@ import { OutsourceIncluded } from './sections/OutsourceIncluded';
 import { HomeAdvantages } from './sections/HomeAdvantages';
 import { Trust } from '@/widgets/trust/Trust';
 import { PricingTable } from '@/widgets/pricing-table/PricingTable';
+import { KaspiQrPaymentCard } from '@/features/billing/ui/KaspiQrPaymentCard';
 import { Section } from '@/shared/ui/Section';
 import { Container } from '@/shared/ui/Container';
 import { Reviews } from '@/widgets/reviews/Reviews';
@@ -40,6 +41,9 @@ export function HomePage() {
               </p>
             </div>
             <PricingTable />
+            <div id="kaspi-qr" className="mt-10 sm:mt-14 max-w-2xl mx-auto">
+              <KaspiQrPaymentCard />
+            </div>
           </Container>
         </Section>
         <Reviews />

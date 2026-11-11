@@ -61,6 +61,9 @@ public class PaymentReceiptService {
     @Value("${app.billing.requisites.bank-name:АО Каспий Банк}")
     private String bankName = "АО Каспий Банк";
 
+    @Value("${app.billing.requisites.kaspi-pay-url:https://pay.kaspi.kz/pay/ooixwvwq}")
+    private String kaspiPayUrl = "https://pay.kaspi.kz/pay/ooixwvwq";
+
     @org.springframework.beans.factory.annotation.Autowired
     public PaymentReceiptService(
             PaymentReceiptRepository paymentReceiptRepository,
@@ -177,6 +180,24 @@ public class PaymentReceiptService {
             throw new ConflictException("Receipt has already been reviewed with status: " + receipt.getStatus());
         }
 
+        // A payment may have been confirmed by the provider after this receipt was uploaded.
+        // Lock the same invoice row used by the provider payment ledger before granting access.
+        Invoice invoice = receipt.getInvoice();
+        if (invoice != null) {
+            invoice = invoiceRepository.findByIdForPaymentUpdate(invoice.getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Invoice not found"));
+            if (invoice.getStatus() == Invoice.InvoiceStatus.PAID) {
+                throw new ConflictException("Invoice has already been paid.");
+            }
+            if (invoice.getStatus() != Invoice.InvoiceStatus.ISSUED
+                    && invoice.getStatus() != Invoice.InvoiceStatus.OVERDUE) {
+                throw new ConflictException("Invoice is not payable.");
+            }
+            if (!"KZT".equals(receipt.getCurrency()) || invoice.getAmount().compareTo(receipt.getAmount()) != 0) {
+                throw new ConflictException("Receipt amount does not match invoice.");
+            }
+        }
+
         receipt.setStatus(PaymentReceiptStatus.CONFIRMED);
         receipt.setReviewedBy(admin);
         receipt.setReviewedAt(Instant.now());
@@ -217,7 +238,6 @@ public class PaymentReceiptService {
         }
 
         // Close invoice if present
-        Invoice invoice = receipt.getInvoice();
         if (invoice != null) {
             invoice.setStatus(Invoice.InvoiceStatus.PAID);
             invoiceRepository.save(invoice);
@@ -312,7 +332,7 @@ public class PaymentReceiptService {
 
 
     public PaymentRequisitesDto getRequisites() {
-        return new PaymentRequisitesDto(recipientName, bin, iban, kbe, bankName);
+        return new PaymentRequisitesDto(recipientName, bin, iban, kbe, bankName, kaspiPayUrl);
     }
 
     private PaymentReceiptDto mapToDto(PaymentReceipt r) {

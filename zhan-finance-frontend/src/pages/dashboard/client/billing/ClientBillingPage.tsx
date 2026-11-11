@@ -16,6 +16,7 @@ import {
 import { billingApi, SubscriptionDto } from '@/entities/billing/api/billingApi';
 import { paymentReceiptApi, PaymentReceiptDto, PaymentRequisitesDto } from '@/entities/billing/api/paymentReceiptApi';
 import { PaymentModal } from '@/features/billing/ui/PaymentModal';
+import { KaspiQrPaymentCard } from '@/features/billing/ui/KaspiQrPaymentCard';
 import { PaymentHistoryTable } from '@/features/billing/ui/PaymentHistoryTable';
 import { BILLING_PLANS, getLocalizedPlanName, getPlanIdBySubscription } from '@/entities/billing/model/billingPlans';
 

@@ -42,8 +42,8 @@ export function PricingTable() {
               </ul>
             </div>
             <button
-              onClick={() => (document.getElementById('contact') || document.getElementById('footer'))?.scrollIntoView({ behavior: 'smooth' })}
-              className={`w-full py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-bold uppercase tracking-wider text-[10px] sm:text-xs transition-all ${
+              onClick={() => (document.getElementById('kaspi-qr') || document.getElementById('contact') || document.getElementById('footer'))?.scrollIntoView({ behavior: 'smooth' })}
+              className={`w-full py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-bold uppercase tracking-wider text-[10px] sm:text-xs transition-all cursor-pointer ${
                 plan.highlighted
                   ? 'bg-brand-green text-brand-beige hover:bg-brand-green/90 shadow-md'
                   : 'bg-brand-green/5 text-brand-green hover:bg-brand-green hover:text-brand-beige border border-brand-green/15'

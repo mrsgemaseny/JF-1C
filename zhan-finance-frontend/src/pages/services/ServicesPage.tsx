@@ -2,6 +2,7 @@ import { Header } from '@/widgets/header/Header';
 import { Footer } from '@/widgets/footer/Footer';
 import { Section } from '@/shared/ui/Section';
 import { PricingTable } from '@/widgets/pricing-table/PricingTable';
+import { KaspiQrPaymentCard } from '@/features/billing/ui/KaspiQrPaymentCard';
 import { ServicesHero } from './sections/ServicesHero';
 import { ServicesCatalog } from './sections/ServicesCatalog';
 import { ServicesFaqContact } from './sections/ServicesFaqContact';
@@ -71,6 +72,9 @@ export function ServicesPage() {
             </p>
           </div>
           <PricingTable />
+          <div id="kaspi-qr" className="mt-10 sm:mt-14 max-w-2xl mx-auto">
+            <KaspiQrPaymentCard />
+          </div>
         </Section>
 
         <ServicesFaqContact />

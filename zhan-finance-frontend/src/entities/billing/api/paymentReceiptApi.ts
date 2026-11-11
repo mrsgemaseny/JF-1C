@@ -29,6 +29,7 @@ export interface PaymentRequisitesDto {
   iban: string;
   kbe: string;
   bankName: string;
+  kaspiPayUrl?: string;
 }
 
 export interface PaymentReceiptUrlResponse {
