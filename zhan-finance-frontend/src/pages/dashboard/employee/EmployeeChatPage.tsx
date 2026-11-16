@@ -281,7 +281,7 @@ export function EmployeeChatPage() {
   );
 
   return (
-    <div className="flex flex-1 min-h-0 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden relative">
+    <div className="flex flex-1 min-h-0 bg-white overflow-hidden relative">
       
       {/* Sidebar - Contacts */}
       <div className={twMerge(

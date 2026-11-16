@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { ErrorBoundary } from '@/shared/ui/ErrorBoundary';
 import { DashboardSidebar } from './DashboardSidebar';
 import { Menu } from 'lucide-react';
@@ -140,6 +140,8 @@ function HeaderProfile() {
 export function DashboardLayout() {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(true);
+  const { pathname } = useLocation();
+  const isFullBleed = pathname.endsWith('/chat');
 
   return (
     <div className="flex h-[100dvh] bg-gray-50 overflow-hidden">
@@ -178,7 +180,7 @@ export function DashboardLayout() {
             </div>
           </div>
           
-          <div className="flex-1 flex flex-col min-h-0 p-3 sm:p-6 md:p-8">
+          <div className={`flex-1 flex flex-col min-h-0 ${isFullBleed ? 'p-0' : 'p-3 sm:p-6 md:p-8'}`}>
             <ErrorBoundary>
               <Outlet />
             </ErrorBoundary>
