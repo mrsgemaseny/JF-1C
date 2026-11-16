@@ -317,7 +317,7 @@ export const ClientBillingPage: React.FC = () => {
               {t('billing.payViaKaspi', 'Оплатить через Kaspi / Банк')}
             </button>
             <span className="text-xs text-gray-400">
-              {t('billing.supportNotice', 'Нужен индивидуальный расчет тарифа? Напишите куратору в чат.')}
+              {t('billing.supportNotice', 'Нужен индивидуальный расчет тарифа? Напишите бухгалтеру в чат.')}
             </span>
           </div>
         </div>

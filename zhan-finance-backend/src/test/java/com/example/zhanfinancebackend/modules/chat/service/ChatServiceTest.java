@@ -8,6 +8,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -62,10 +64,44 @@ class ChatServiceTest {
     }
 
     @Test
-    void testValidateAccess_ClientCannotChatWithUnassignedEmployee() {
+    void clientCanSeeAndChatWithAllActiveEmployees() {
+        User client = new User();
+        client.setId(1L);
+        client.setRole(Role.CLIENT);
+
+        User activeEmployee = new User();
+        activeEmployee.setId(2L);
+        activeEmployee.setRole(Role.EMPLOYEE);
+
+        User disabledEmployee = new User();
+        disabledEmployee.setId(3L);
+        disabledEmployee.setRole(Role.EMPLOYEE);
+        disabledEmployee.setEnabled(false);
+
+        User deletedEmployee = new User();
+        deletedEmployee.setId(4L);
+        deletedEmployee.setRole(Role.EMPLOYEE);
+        deletedEmployee.setDeletedAt(Instant.now());
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(client));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(activeEmployee));
+        when(userRepository.findAllByRoleIn(List.of(Role.ADMIN, Role.ADVISOR))).thenReturn(List.of());
+        when(userRepository.findAllByRole(Role.EMPLOYEE)).thenReturn(List.of(activeEmployee, disabledEmployee, deletedEmployee));
+        when(chatMessageRepository.countUnreadByReceiverGroupedBySender(1L)).thenReturn(List.of());
+        when(chatMessageRepository.findLastMessagesForUser(1L)).thenReturn(List.of());
+
+        List<com.example.zhanfinancebackend.modules.chat.dto.ChatContactDto> contacts = chatService.getContacts(1L);
+
+        assertEquals(List.of(2L), contacts.stream().map(contact -> contact.id()).toList());
+        assertDoesNotThrow(() -> chatService.getChatHistory(1L, 2L, null));
+    }
+
+    @Test
+    void testValidateAccess_ClientCannotChatWithInactiveUnassignedEmployee() {
         User unassignedEmployee = new User();
         unassignedEmployee.setId(2L);
         unassignedEmployee.setRole(Role.EMPLOYEE);
+        unassignedEmployee.setEnabled(false);
 
         User assignedEmployee = new User();
         assignedEmployee.setId(3L);
@@ -83,7 +119,7 @@ class ChatServiceTest {
                 org.springframework.security.access.AccessDeniedException.class,
                 () -> chatService.getChatHistory(1L, 2L, null)
         );
-        assertEquals("Client can only chat with their assigned employee, admins, or advisors", ex.getMessage());
+        assertEquals("Client can only chat with active employees, admins, or advisors", ex.getMessage());
     }
 
     @Test

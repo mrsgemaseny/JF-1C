@@ -4,7 +4,7 @@
   "delete": "删除",
   "edit": "编辑",
   "search": {
-    "placeholder": "搜索任务、企业、培训课程或用户...",
+    "placeholder": "搜索任务、企业、培训课程、用户和会计师...",
     "categories": {
       "tasks": "任务事项",
       "courses": "培训课程",
@@ -243,6 +243,7 @@
   },
   "clientChat": {
     "sidebarTitle": "在线客服与支持",
+    "searchPlaceholder": "按姓名或邮箱搜索...",
     "placeholderTitle": "ZHAN FINANCE 财务管家支持",
     "placeholderSubtitle": "请选择一个会话开始交流",
     "inputPlaceholder": "请输入消息...",
@@ -1956,17 +1957,17 @@
     "plans": {
       "start": {
         "name": "初创版",
-        "desc": "适合无雇员的简化税制个体户 (IE)",
+        "desc": "适合简化税制个体户 (IE)",
         "price": "30,000 ₸"
       },
       "standard": {
         "name": "标准版",
-        "desc": "适合5人以下团队的中小微企业 (LLP/IE)",
+        "desc": "适合有员工的企业 (LLP/IE)",
         "price": "100,000 ₸"
       },
       "pro": {
         "name": "专业版",
-        "desc": "适合一般纳税人增值税企业、跨境贸易与电商",
+        "desc": "适合一般纳税人增值税企业",
         "price": "200,000 ₸"
       },
       "corporate": {
@@ -1990,8 +1991,8 @@
     "feature2": "开具及审核电子发票(ESF)、货物运单(SNT)及结算单",
     "feature3": "员工工资核算、税费及法定社保代扣代缴",
     "feature4": "按期申报910、200、300等税务报表",
-    "feature5": "专属财税顾问及在线会计咨询",
-    "supportNotice": "需要定制财务方案？请在聊天中联系专属顾问。",
+    "feature5": "专属会计师及在线聊天",
+    "supportNotice": "需要定制财务方案？请在聊天中联系会计师。",
     "historyTitle": "付款及凭证记录",
     "loading": "加载中...",
     "noReceipts": "暂无付款记录",
@@ -2090,7 +2091,7 @@
       "redirecting": "正在跳转到支付页面...",
       "startError": "无法发起支付。请稍后重试，或使用转账支付。",
       "kaspiHintTitle": "在 Kaspi.kz 中按账单编号支付",
-      "kaspiHint": "在 Kaspi.kz 应用中打开“付款”，找到 ЖАН FINANCE，并输入账单编号 {{invoiceId}}。",
+      "kaspiHint": "在 Kaspi.kz 应用中打开“付款”，找到 ZHAN FINANCE，并输入账单编号 {{invoiceId}}。",
       "returnChecking": "正在确认付款...",
       "returnPaid": "已收到付款，订阅已激活。",
       "returnFailed": "付款未成功，账单仍未支付。",

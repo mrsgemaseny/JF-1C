@@ -2,6 +2,7 @@ package com.example.zhanfinancebackend.modules.search.service;
 
 import com.example.zhanfinancebackend.modules.auth.dto.UserDto;
 import com.example.zhanfinancebackend.modules.auth.entity.Role;
+import com.example.zhanfinancebackend.modules.auth.entity.RegistrationStatus;
 import com.example.zhanfinancebackend.modules.auth.entity.User;
 import com.example.zhanfinancebackend.modules.auth.repository.UserRepository;
 import com.example.zhanfinancebackend.modules.crm.dto.TaskDto;
@@ -94,7 +95,10 @@ public class GlobalSearchService {
             return u.getRole() == Role.CLIENT && u.getAssignedEmployee() != null && u.getAssignedEmployee().getId().equals(user.getId());
         }
         if (user.getRole() == Role.CLIENT) {
-            return u.getRole() == Role.EMPLOYEE && user.getAssignedEmployee() != null && u.getId().equals(user.getAssignedEmployee().getId());
+            return u.getRole() == Role.EMPLOYEE
+                    && u.isEnabled()
+                    && u.getDeletedAt() == null
+                    && u.getRegistrationStatus() == RegistrationStatus.APPROVED;
         }
         return false;
     }

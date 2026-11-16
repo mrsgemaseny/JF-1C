@@ -10,10 +10,12 @@ import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { twMerge } from 'tailwind-merge';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 
 export function ClientChatPage() {
   const { user } = useAuth();
   const { t } = useTranslation(['common']);
+  const [searchParams, setSearchParams] = useSearchParams();
   const { refreshUnreadChatCount } = useChatNotifications();
   
   // Contacts state
@@ -51,6 +53,21 @@ export function ClientChatPage() {
   useEffect(() => {
     fetchContacts();
   }, []);
+
+  useEffect(() => {
+    const userId = Number(searchParams.get('userId'));
+    if (!Number.isSafeInteger(userId) || userId < 1) return;
+
+    const contact = contacts.find(candidate => candidate.id === userId);
+    if (!contact) return;
+
+    setSelectedContact(contact);
+    setSearchParams(params => {
+      const nextParams = new URLSearchParams(params);
+      nextParams.delete('userId');
+      return nextParams;
+    }, { replace: true });
+  }, [contacts, searchParams, setSearchParams]);
 
   useEffect(() => {
     if (selectedContact) {
@@ -284,7 +301,7 @@ export function ClientChatPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input 
               type="text" 
-              placeholder={t('search.placeholder').split(',')[0] + '...'} // Reusing search.placeholder partially or just use generic Search
+              placeholder={t('clientChat.searchPlaceholder')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:border-brand-green focus:ring-1 focus:ring-brand-green outline-none transition-all"

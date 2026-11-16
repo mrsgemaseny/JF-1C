@@ -55,7 +55,7 @@
   "pricing": [
     {
       "title": "Start",
-      "subtitle": "For sole proprietors on simplified regime with no staff",
+      "subtitle": "For sole proprietors on simplified regime",
       "price": "from 30,000 ₸/mo",
       "f0": "Primary documents processing",
       "f1": "Submission of tax form 910.00",
@@ -64,7 +64,7 @@
     },
     {
       "title": "Standard",
-      "subtitle": "For IE and LLP with up to 5 employees",
+      "subtitle": "For IE and LLP with employees",
       "price": "from 100,000 ₸/mo",
       "f0": "Primary documents processing & control",
       "f1": "HR records and payroll calculation",
@@ -73,7 +73,7 @@
     },
     {
       "title": "Pro",
-      "subtitle": "For VAT-registered LLP with active operations",
+      "subtitle": "For VAT-registered LLP",
       "price": "from 200,000 ₸/mo",
       "f0": "Comprehensive primary documents processing",
       "f1": "VAT accounting (forms 300.00, 200.00, 100.00)",

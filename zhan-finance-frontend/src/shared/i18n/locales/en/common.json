@@ -4,7 +4,7 @@
   "delete": "Delete",
   "edit": "Edit",
   "search": {
-    "placeholder": "Search tasks, clients, courses...",
+    "placeholder": "Search tasks, clients, courses, and accountants...",
     "categories": {
       "tasks": "Tasks",
       "courses": "Courses",
@@ -243,6 +243,7 @@
   },
   "clientChat": {
     "sidebarTitle": "Support",
+    "searchPlaceholder": "Search by name or email...",
     "placeholderTitle": "ЖАН FINANCE Support",
     "placeholderSubtitle": "Select a chat to start messaging",
     "inputPlaceholder": "Type a message...",
@@ -1959,17 +1960,17 @@
     "plans": {
       "start": {
         "name": "Start",
-        "desc": "For sole proprietors on simplified regime with no staff",
+        "desc": "For sole proprietors on simplified regime",
         "price": "30,000 ₸"
       },
       "standard": {
         "name": "Standard",
-        "desc": "For IE and LLP with up to 5 employees",
+        "desc": "For IE and LLP with employees",
         "price": "100,000 ₸"
       },
       "pro": {
         "name": "Pro",
-        "desc": "For VAT-registered LLP with active operations",
+        "desc": "For VAT-registered LLP",
         "price": "200,000 ₸"
       },
       "corporate": {
@@ -1993,8 +1994,8 @@
     "feature2": "Issuance and processing of electronic invoices, SNT, and acts",
     "feature3": "Payroll, taxes, and mandatory deductions calculation",
     "feature4": "Timely submission of 910, 200, 300 forms",
-    "feature5": "Personal curator and online chat with accountant",
-    "supportNotice": "Need a custom subscription plan? Contact your curator in chat.",
+    "feature5": "Personal accountant and online chat",
+    "supportNotice": "Need a custom subscription plan? Contact your accountant in chat.",
     "historyTitle": "Payment and Receipt History",
     "loading": "Loading...",
     "noReceipts": "No payments yet",

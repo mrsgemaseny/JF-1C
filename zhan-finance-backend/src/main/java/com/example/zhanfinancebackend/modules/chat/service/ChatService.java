@@ -3,6 +3,7 @@ package com.example.zhanfinancebackend.modules.chat.service;
 import com.example.zhanfinancebackend.common.exception.ApiException;
 import com.example.zhanfinancebackend.common.exception.ErrorCode;
 import com.example.zhanfinancebackend.modules.auth.entity.Role;
+import com.example.zhanfinancebackend.modules.auth.entity.RegistrationStatus;
 import com.example.zhanfinancebackend.modules.auth.entity.User;
 import com.example.zhanfinancebackend.modules.auth.repository.UserRepository;
 import com.example.zhanfinancebackend.modules.chat.dto.ChatContactDto;
@@ -87,7 +88,18 @@ public class ChatService {
                     .forEach(u -> uniqueUsers.put(u.getId(), u));
             userRepository.findAllByAssignedEmployee(currentUser)
                     .forEach(u -> uniqueUsers.put(u.getId(), u));
-        } else if (currentUser.getRole() == Role.CLIENT || currentUser.getRole() == Role.LEARNER) {
+        } else if (currentUser.getRole() == Role.CLIENT) {
+            userRepository.findAllByRoleIn(List.of(Role.ADMIN, Role.ADVISOR))
+                    .forEach(u -> uniqueUsers.put(u.getId(), u));
+            userRepository.findAllByRole(Role.EMPLOYEE).stream()
+                    .filter(User::isEnabled)
+                    .filter(u -> u.getDeletedAt() == null)
+                    .filter(u -> u.getRegistrationStatus() == RegistrationStatus.APPROVED)
+                    .forEach(u -> uniqueUsers.put(u.getId(), u));
+            if (currentUser.getAssignedEmployee() != null) {
+                uniqueUsers.put(currentUser.getAssignedEmployee().getId(), currentUser.getAssignedEmployee());
+            }
+        } else if (currentUser.getRole() == Role.LEARNER) {
             if (currentUser.getAssignedEmployee() != null) {
                 uniqueUsers.put(currentUser.getAssignedEmployee().getId(), currentUser.getAssignedEmployee());
             }
@@ -142,15 +154,31 @@ public class ChatService {
             return; // Admin and Advisor can chat with anyone
         }
 
-        if (currentUser.getRole() == Role.CLIENT || currentUser.getRole() == Role.LEARNER) {
+        if (currentUser.getRole() == Role.CLIENT) {
             if (otherUser.getRole() == Role.ADMIN || otherUser.getRole() == Role.ADVISOR) {
-                return; // Clients/Learners can chat with admins and advisors
+                return; // Clients can chat with admins and advisors
+            }
+            if (otherUser.getRole() == Role.EMPLOYEE
+                    && otherUser.isEnabled()
+                    && otherUser.getDeletedAt() == null
+                    && otherUser.getRegistrationStatus() == RegistrationStatus.APPROVED) {
+                return;
+            }
+            if (currentUser.getAssignedEmployee() != null && currentUser.getAssignedEmployee().getId().equals(otherUserId)) {
+                return;
+            }
+            throw new org.springframework.security.access.AccessDeniedException("Client can only chat with active employees, admins, or advisors");
+        } 
+
+        if (currentUser.getRole() == Role.LEARNER) {
+            if (otherUser.getRole() == Role.ADMIN || otherUser.getRole() == Role.ADVISOR) {
+                return;
             }
             if (currentUser.getAssignedEmployee() != null && currentUser.getAssignedEmployee().getId().equals(otherUserId)) {
                 return;
             }
             throw new org.springframework.security.access.AccessDeniedException("Client can only chat with their assigned employee, admins, or advisors");
-        } 
+        }
         
         if (currentUser.getRole() == Role.EMPLOYEE) {
             if (otherUser.getRole() == Role.ADMIN || otherUser.getRole() == Role.ADVISOR || otherUser.getRole() == Role.EMPLOYEE) {
@@ -193,4 +221,3 @@ public class ChatService {
         );
     }
 }
-

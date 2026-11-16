@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDebounce } from '@/shared/hooks/useDebounce';
 import { useAuth } from '@/features/auth/AuthContext';
 import { useTranslation } from 'react-i18next';
+import { ROUTES } from '@/shared/config/routes';
 
 export function GlobalSearch() {
   const { t } = useTranslation(['common']);
@@ -63,6 +64,12 @@ export function GlobalSearch() {
     if (!courseId) return;
     if (user?.role === 'ADMIN' || user?.role === 'CURATOR') navigate(`/admin/courses/${courseId}/lessons/${lessonId}/edit`);
     else if (user?.role === 'LEARNER') navigate(`/courses/${courseId}/lessons/${lessonId}`);
+  };
+
+  const handleSelectUser = (id: number) => {
+    if (user?.role !== 'CLIENT') return;
+    setIsOpen(false);
+    navigate(`${ROUTES.CLIENT_CHAT}?userId=${id}`);
   };
 
   return (
@@ -153,12 +160,32 @@ export function GlobalSearch() {
                   <div className="px-4 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">
                     {t('search.categories.users', { defaultValue: 'Пользователи' })}
                   </div>
-                  {results.users.map(user => (
-                    <div key={user.id} className="px-4 py-2 hover:bg-gray-50 flex flex-col">
-                      <span className="font-medium text-gray-900 truncate leading-relaxed pb-0.5">{user.fullName}</span>
-                      <span className="text-xs text-gray-500">{user.email} • {user.role}</span>
-                    </div>
-                  ))}
+                  {results.users.map(resultUser => {
+                    const roleLabel = resultUser.role === 'EMPLOYEE'
+                      ? t('clientChat.roles.EMPLOYEE', { defaultValue: 'Accountant' })
+                      : resultUser.role;
+                    const content = (
+                      <>
+                        <span className="font-medium text-gray-900 truncate leading-relaxed pb-0.5">{resultUser.fullName}</span>
+                        <span className="text-xs text-gray-500">{resultUser.email} • {roleLabel}</span>
+                      </>
+                    );
+
+                    return user?.role === 'CLIENT' && resultUser.role === 'EMPLOYEE' ? (
+                      <button
+                        key={resultUser.id}
+                        type="button"
+                        onClick={() => handleSelectUser(resultUser.id)}
+                        className="w-full text-left px-4 py-2 hover:bg-gray-50 flex flex-col"
+                      >
+                        {content}
+                      </button>
+                    ) : (
+                      <div key={resultUser.id} className="px-4 py-2 hover:bg-gray-50 flex flex-col">
+                        {content}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
