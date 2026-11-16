@@ -82,6 +82,9 @@ public class SecurityConfig {
                                 "/v1/contact-requests/*/files",
                                 "/v1/services",
                                 "/v1/services/highlighted",
+                                // Provider callbacks: protected by IP allowlist (Kaspi) or signature
+                                // plus server-side status check (Freedom Pay), not by JWT.
+                                "/v1/payments/callbacks/**",
                                 "/v1/courses/certificates/verify/**",
                                 "/uploads/avatars/**",
                                 "/api/uploads/avatars/**",

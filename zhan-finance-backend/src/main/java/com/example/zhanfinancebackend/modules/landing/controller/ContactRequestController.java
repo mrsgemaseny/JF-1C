@@ -67,8 +67,9 @@ public class ContactRequestController {
     @PostMapping("/{id}/files")
     public ApiResponse<List<ContactRequestFileDto>> uploadFiles(
             @PathVariable Long id,
+            @RequestParam("token") String uploadToken,
             @RequestParam("files") org.springframework.web.multipart.MultipartFile[] files) {
-        return ApiResponse.success(contactRequestService.uploadFiles(id, files), "Files uploaded");
+        return ApiResponse.success(contactRequestService.uploadFiles(id, uploadToken, files), "Files uploaded");
     }
 
     @GetMapping("/{id}/files/{fileId}/download")

@@ -15,8 +15,16 @@ import java.util.UUID;
 @Table(name = "refresh_tokens")
 public class RefreshToken extends BaseEntity {
 
+    /**
+     * SHA-256 hex digest of the raw refresh token. The raw value is never persisted:
+     * a database dump must not be convertible into live sessions.
+     */
     @Column(nullable = false, unique = true, length = 80)
     private String token;
+
+    /** Raw token value, available only on the instance that issued it. */
+    @jakarta.persistence.Transient
+    private String rawToken;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id")
@@ -49,8 +57,17 @@ public class RefreshToken extends BaseEntity {
         this(token, user, UUID.randomUUID().toString(), expiresAt);
     }
 
+    /** Stored digest. Use {@link #getRawToken()} for the value handed to the client. */
     public String getToken() {
         return token;
+    }
+
+    public String getRawToken() {
+        return rawToken;
+    }
+
+    public void setRawToken(String rawToken) {
+        this.rawToken = rawToken;
     }
 
     public User getUser() {

@@ -16,7 +16,7 @@ public class TestEmailController {
 
     private final JavaMailSender mailSender;
 
-    @org.springframework.beans.factory.annotation.Value("${app.mail.from-address:orkathebestt@gmail.com}")
+    @org.springframework.beans.factory.annotation.Value("${app.mail.from-address:no-reply@zhan-finance.com}")
     private String fromAddress;
 
     public TestEmailController(JavaMailSender mailSender) {

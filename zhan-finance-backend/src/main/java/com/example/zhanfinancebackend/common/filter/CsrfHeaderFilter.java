@@ -39,6 +39,13 @@ public class CsrfHeaderFilter extends OncePerRequestFilter {
             return;
         }
         
+        // Payment provider callbacks are server-to-server and cannot send our CSRF header; they
+        // carry no cookies, and authenticity is checked by signature / IP allowlist in the handler.
+        if (uri != null && (uri.startsWith("/api/v1/payments/callbacks/") || uri.startsWith("/v1/payments/callbacks/"))) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         // Only block state-changing requests
         if (HttpMethod.POST.name().equalsIgnoreCase(method) ||
             HttpMethod.PUT.name().equalsIgnoreCase(method) ||

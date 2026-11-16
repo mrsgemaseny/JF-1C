@@ -64,9 +64,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 Long uid = jwtService.extractUserIdIfValidAccessToken(token);
 
                 if (role != null && uid != null) {
+                    // A user that no longer exists must not keep a live session for the
+                    // remaining lifetime of its access token.
                     boolean enabled = userRepository.findById(uid)
                             .map(u -> u.isEnabled() && !u.isDeleted())
-                            .orElse(true);
+                            .orElse(false);
 
                     if (!enabled) {
                         SecurityContextHolder.clearContext();

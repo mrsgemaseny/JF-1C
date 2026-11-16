@@ -1,3 +1,44 @@
+# Онлайн-оплата счетов: реализация (Kaspi provider + Freedom Pay)
+
+> Этот раздел описывает то, что реализовано в коде. Всё ниже раздела "Kaspi Pay - предварительный черновик"
+> остаётся историческим наброском. Halyk Epay из прежнего плана заменён на Freedom Pay.
+
+## Что реализовано
+
+- **Реестр платежей:** таблица `online_payments` (V135), уникальность `(provider, provider_payment_id)` и один платёж на счёт.
+  Зачисление идёт через `OnlinePaymentLedgerService` (блокировка счёта, идемпотентность, сверка суммы),
+  затем `OnlinePaymentSettlementService` продлевает подписку на 30 дней и шлёт уведомления.
+- **Kaspi (Kaspi вызывает нас):** `GET /api/v1/payments/callbacks/kaspi`, `command=check|pay`.
+  `account` = номер счёта. Ответы кэшируются в `kaspi_callbacks` по `(txn_id, command)`, повтор получает тот же ответ.
+  Доступ только с IP из `KASPI_ALLOWED_IPS` (Fly-Client-IP), при выключенном флаге endpoint отвечает 404.
+  Коды: 0 ок, 1 временная ошибка, 2 неверный формат account, 3 счёт не найден, 4 платёж невозможен, 5 прочее.
+- **Freedom Pay (карты):** клиент создаёт платёж `POST /api/v1/billing/online-payments/freedom/invoices/{id}`,
+  получает ссылку на форму Freedom Pay. Результат приходит на `POST /api/v1/payments/callbacks/freedom`.
+  Callback не доверяется сам по себе: проверяется MD5-подпись, сумма и заказ сверяются с `payment_intents`,
+  оплата подтверждается серверным запросом `get_status3.php`, только потом запись в реестр.
+  Фронтенд после возврата опрашивает `GET .../freedom/orders/{orderId}`; при опоздавшем callback статус сверяется с провайдером.
+- **Рефреш-токены** хранятся как SHA-256 (V134); при деплое все сессии завершаются один раз.
+
+## Переменные окружения (секреты только через env / fly secrets)
+
+| Переменная | Назначение |
+|---|---|
+| `KASPI_PROVIDER_ENABLED` | включить Kaspi endpoint (по умолчанию false) |
+| `KASPI_ALLOWED_IPS` | IP/CIDR Kaspi через запятую; обязателен при включении |
+| `FREEDOM_ENABLED` | включить Freedom Pay (по умолчанию false) |
+| `FREEDOM_MERCHANT_ID`, `FREEDOM_SECRET_KEY` | данные мерчанта |
+| `FREEDOM_RESULT_URL` | публичный HTTPS URL `/api/v1/payments/callbacks/freedom` (последний сегмент входит в подпись) |
+| `FREEDOM_API_BASE` | по умолчанию `https://api.freedompay.kz` |
+| `FREEDOM_TESTING_MODE` | `true` только на тестовом мерчанте |
+
+## Что проверить на песочнице перед включением
+
+- Значения `pg_payment_status` в ответе `get_status3.php`: код принимает `success` (и `ok`); в документации значения не перечислены.
+- Подпись ответа `get_status3.php` не проверяется (документация не описывает правило); защита держится на HTTPS.
+- Формат `account` и IP-адреса Kaspi согласуются при подключении; до этого `KASPI_PROVIDER_ENABLED=false`.
+
+---
+
 # Kaspi Pay — предварительный черновик интеграции (JF-1C)
 
 > Трек: **Платежи на Kaspi.kz → Поставщики услуг**

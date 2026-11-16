@@ -2082,6 +2082,19 @@
         "rejected": "已拒绝",
         "confirmed": "已确认"
       }
+    },
+    "onlinePay": {
+      "cardTitle": "在线银行卡支付",
+      "cardDesc": "通过 Freedom Pay 安全支付。付款后订阅将自动激活。",
+      "cardBtn": "使用银行卡支付 {{amount}}",
+      "redirecting": "正在跳转到支付页面...",
+      "startError": "无法发起支付。请稍后重试，或使用转账支付。",
+      "kaspiHintTitle": "在 Kaspi.kz 中按账单编号支付",
+      "kaspiHint": "在 Kaspi.kz 应用中打开“付款”，找到 ЖАН FINANCE，并输入账单编号 {{invoiceId}}。",
+      "returnChecking": "正在确认付款...",
+      "returnPaid": "已收到付款，订阅已激活。",
+      "returnFailed": "付款未成功，账单仍未支付。",
+      "returnPending": "付款处理中，状态将在几分钟内更新。"
     }
   }
 }

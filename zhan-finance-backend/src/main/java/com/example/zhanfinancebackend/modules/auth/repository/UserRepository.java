@@ -19,6 +19,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     boolean existsByEmailIgnoreCase(String email);
 
+    // Public avatar endpoint: a storage key is servable only if some user references it as an avatar.
+    boolean existsByAvatarUrl(String avatarUrl);
+
     long countByRole(Role role);
 
     long countByAssignedEmployee(User employee);

@@ -155,7 +155,7 @@ public class AuthService {
             );
             emailNotificationService.sendWelcomeEmail(savedUser);
             RefreshToken refreshToken = refreshTokenService.create(savedUser);
-            return response(savedUser, refreshToken.getToken());
+            return response(savedUser, refreshToken.getRawToken());
         }
     }
 
@@ -298,7 +298,7 @@ public class AuthService {
 
     public AuthResponse buildFullAuthResponse(User user) {
         RefreshToken refreshToken = refreshTokenService.create(user);
-        return response(user, refreshToken.getToken());
+        return response(user, refreshToken.getRawToken());
     }
 
     @Transactional
@@ -306,7 +306,7 @@ public class AuthService {
         RefreshToken rotatedToken = refreshTokenService.verify(request.refreshToken());
         User user = rotatedToken.getUser();
 
-        return response(user, rotatedToken.getToken());
+        return response(user, rotatedToken.getRawToken());
     }
 
     @Transactional

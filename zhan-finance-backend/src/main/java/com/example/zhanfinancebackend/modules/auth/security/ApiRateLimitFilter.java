@@ -115,6 +115,10 @@ public class ApiRateLimitFilter extends OncePerRequestFilter {
         if (uri.startsWith("/api/v1/auth") || uri.startsWith("/api/auth") || uri.startsWith("/v1/auth") || uri.startsWith("/auth")) {
             return true;
         }
+        // Payment provider callbacks arrive from a few shared IPs; throttling them would drop payments.
+        if (uri.startsWith("/api/v1/payments/callbacks/") || uri.startsWith("/v1/payments/callbacks/")) {
+            return true;
+        }
         // Internal bot API
         if (uri.startsWith("/api/v1/internal") || uri.startsWith("/v1/internal")) {
             return true;
@@ -221,8 +225,9 @@ public class ApiRateLimitFilter extends OncePerRequestFilter {
         }
         ip = request.getHeader("X-Forwarded-For");
         if (ip != null && !ip.isBlank()) {
-            int commaIdx = ip.indexOf(',');
-            return (commaIdx > -1 ? ip.substring(0, commaIdx) : ip).trim();
+            // The first entry is client-controlled; the last one is appended by our own reverse proxy.
+            int commaIdx = ip.lastIndexOf(',');
+            return (commaIdx > -1 ? ip.substring(commaIdx + 1) : ip).trim();
         }
         ip = request.getHeader("X-Real-IP");
         if (ip != null && !ip.isBlank()) {

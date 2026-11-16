@@ -26,18 +26,21 @@ public class ContactRequestService {
     private final StorageService storageService;
     private final NotificationService notificationService;
     private final EmailNotificationService emailNotificationService;
+    private final ContactRequestUploadTokenService uploadTokenService;
 
     public ContactRequestService(
             ContactRequestRepository contactRequestRepository,
             ContactRequestFileRepository fileRepository,
             StorageService storageService,
             NotificationService notificationService,
-            EmailNotificationService emailNotificationService) {
+            EmailNotificationService emailNotificationService,
+            ContactRequestUploadTokenService uploadTokenService) {
         this.contactRequestRepository = contactRequestRepository;
         this.fileRepository = fileRepository;
         this.storageService = storageService;
         this.notificationService = notificationService;
         this.emailNotificationService = emailNotificationService;
+        this.uploadTokenService = uploadTokenService;
     }
 
     @Transactional
@@ -101,7 +104,9 @@ public class ContactRequestService {
             }
         }
 
-        return toDto(saved);
+        // The upload token is the only authorization for the anonymous file upload endpoint.
+        // It is returned exactly once, here.
+        return toDto(saved).withUploadToken(uploadTokenService.issue(saved));
     }
 
     @Transactional(readOnly = true)
@@ -129,9 +134,29 @@ public class ContactRequestService {
 
     private static final List<String> ALLOWED_EXTENSIONS = List.of("pdf", "doc", "docx", "png", "jpg", "jpeg", "txt", "zip", "xlsx", "xls");
 
+    // Content sniffed by Tika must agree with the declared extension; an executable renamed to .pdf is rejected.
+    private static final java.util.Set<String> ALLOWED_DETECTED_TYPES = java.util.Set.of(
+            "application/pdf",
+            "application/msword",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "application/vnd.ms-excel",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "application/x-tika-ooxml",
+            "application/x-tika-msoffice",
+            "application/zip",
+            "image/png",
+            "image/jpeg",
+            "text/plain"
+    );
+
     @org.springframework.transaction.annotation.Transactional
-    public List<ContactRequestFileDto> uploadFiles(Long requestId, org.springframework.web.multipart.MultipartFile[] files) {
+    public List<ContactRequestFileDto> uploadFiles(Long requestId, String uploadToken, org.springframework.web.multipart.MultipartFile[] files) {
         ContactRequest contactRequest = get(requestId);
+
+        if (!uploadTokenService.verify(contactRequest, uploadToken)) {
+            // Same response as "not found" so the endpoint does not confirm which ids exist.
+            throw new ResourceNotFoundException("Contact request not found");
+        }
 
         if (contactRequest.getCreatedAt().isBefore(java.time.Instant.now().minus(30, java.time.temporal.ChronoUnit.MINUTES))) {
             throw new com.example.zhanfinancebackend.common.exception.BadRequestException("Время для загрузки файлов истекло");
@@ -166,7 +191,10 @@ public class ContactRequestService {
             try {
                 org.apache.tika.Tika tika = new org.apache.tika.Tika();
                 String detectedType = tika.detect(file.getInputStream());
-                
+                if (detectedType == null || !ALLOWED_DETECTED_TYPES.contains(detectedType)) {
+                    throw new com.example.zhanfinancebackend.common.exception.BadRequestException("File content type not allowed");
+                }
+
                 String storageKey = storageService.store(file);
                 ContactRequestFile crFile = new ContactRequestFile(
                         contactRequest,
@@ -177,8 +205,10 @@ public class ContactRequestService {
                 );
                 
                 savedFiles.add(fileRepository.save(crFile));
+            } catch (com.example.zhanfinancebackend.common.exception.BadRequestException e) {
+                throw e;
             } catch (Exception e) {
-                throw new com.example.zhanfinancebackend.common.exception.BadRequestException("Failed to process file: " + e.getMessage());
+                throw new com.example.zhanfinancebackend.common.exception.BadRequestException("Failed to process file");
             }
         }
 

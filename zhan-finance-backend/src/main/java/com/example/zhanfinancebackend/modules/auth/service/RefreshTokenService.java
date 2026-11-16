@@ -10,8 +10,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Base64;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.UUID;
 
@@ -21,8 +27,11 @@ public class RefreshTokenService {
     private static final Logger log = LoggerFactory.getLogger(RefreshTokenService.class);
     public static final int MAX_ACTIVE_SESSIONS_PER_USER = 5;
 
+    private static final int RAW_TOKEN_BYTES = 32;
+
     private final RefreshTokenRepository refreshTokenRepository;
     private final long refreshTokenExpirationMs;
+    private final SecureRandom secureRandom = new SecureRandom();
 
     public RefreshTokenService(
             RefreshTokenRepository refreshTokenRepository,
@@ -44,14 +53,34 @@ public class RefreshTokenService {
             }
         }
 
-        String familyId = UUID.randomUUID().toString();
-        RefreshToken newToken = new RefreshToken(
-                UUID.randomUUID().toString(),
-                user,
-                familyId,
-                now.plusMillis(refreshTokenExpirationMs)
-        );
-        return refreshTokenRepository.save(newToken);
+        return issue(user, UUID.randomUUID().toString(), now.plusMillis(refreshTokenExpirationMs));
+    }
+
+    /** Persists the digest, returns the entity carrying the raw value for the client. */
+    private RefreshToken issue(User user, String familyId, Instant expiresAt) {
+        String raw = generateRawToken();
+        RefreshToken token = new RefreshToken(hash(raw), user, familyId, expiresAt);
+        RefreshToken saved = refreshTokenRepository.save(token);
+        saved.setRawToken(raw);
+        return saved;
+    }
+
+    private String generateRawToken() {
+        byte[] bytes = new byte[RAW_TOKEN_BYTES];
+        secureRandom.nextBytes(bytes);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    }
+
+    public static String hash(String rawToken) {
+        if (rawToken == null) {
+            return null;
+        }
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            return HexFormat.of().formatHex(digest.digest(rawToken.trim().getBytes(StandardCharsets.UTF_8)));
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 unavailable", e);
+        }
     }
 
     /**
@@ -61,8 +90,9 @@ public class RefreshTokenService {
      */
     @Transactional
     public RefreshToken rotate(String rawToken) {
-        RefreshToken token = refreshTokenRepository.findByTokenForUpdate(rawToken)
-                .or(() -> refreshTokenRepository.findByToken(rawToken))
+        String tokenHash = hash(rawToken);
+        RefreshToken token = refreshTokenRepository.findByTokenForUpdate(tokenHash)
+                .or(() -> refreshTokenRepository.findByToken(tokenHash))
                 .orElseThrow(() -> {
                     log.warn("Refresh token not found: {}",
                             rawToken != null && rawToken.length() > 8 ? rawToken.substring(0, 8) + "..." : rawToken);
@@ -78,9 +108,12 @@ public class RefreshTokenService {
                 if (!activeTokens.isEmpty()) {
                     RefreshToken activeToken = activeTokens.get(0);
                     if (activeToken.getExpiresAt().isAfter(Instant.now())) {
-                        log.info("Grace period active for recently rotated token (family: {}). Returning active token.",
+                        // Only digests are stored, so the concurrently issued raw token cannot be
+                        // handed back; issue one more token in the same family instead. The family
+                        // stays a single revocation unit.
+                        log.info("Grace period active for recently rotated token (family: {}). Issuing sibling token.",
                                 token.getFamilyId());
-                        return activeToken;
+                        return issue(token.getUser(), token.getFamilyId(), Instant.now().plusMillis(refreshTokenExpirationMs));
                     }
                 }
             }
@@ -101,13 +134,7 @@ public class RefreshTokenService {
         refreshTokenRepository.save(token);
 
         // Выпускаем новый токен в той же цепочке семьи
-        RefreshToken newToken = new RefreshToken(
-                UUID.randomUUID().toString(),
-                token.getUser(),
-                token.getFamilyId(),
-                Instant.now().plusMillis(refreshTokenExpirationMs)
-        );
-        return refreshTokenRepository.save(newToken);
+        return issue(token.getUser(), token.getFamilyId(), Instant.now().plusMillis(refreshTokenExpirationMs));
     }
 
     @Transactional
@@ -116,8 +143,11 @@ public class RefreshTokenService {
     }
 
     @Transactional
-    public void revoke(String token) {
-        refreshTokenRepository.findByToken(token).ifPresent(rt -> {
+    public void revoke(String rawToken) {
+        if (rawToken == null || rawToken.isBlank()) {
+            return;
+        }
+        refreshTokenRepository.findByToken(hash(rawToken)).ifPresent(rt -> {
             refreshTokenRepository.revokeByFamilyId(rt.getFamilyId(), Instant.now());
         });
     }

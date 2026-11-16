@@ -37,17 +37,16 @@ class RefreshTokenRotationTest {
     @Test
     @DisplayName("create() сохраняет новый токен с familyId и сохраняет параллельные сессии (до 5 устройств)")
     void create_SavesNewTokenAndPreservesConcurrentSessionsBelowLimit() {
-        RefreshToken tokenToReturn = new RefreshToken("new-token-uuid", testUser, UUID.randomUUID().toString(), Instant.now().plusSeconds(3600));
-        tokenToReturn.setId(100L);
-
         when(refreshTokenRepository.findActiveByUserOrderByCreatedAtAsc(eq(testUser), any(Instant.class)))
                 .thenReturn(List.of());
-        when(refreshTokenRepository.save(any(RefreshToken.class))).thenReturn(tokenToReturn);
+        when(refreshTokenRepository.save(any(RefreshToken.class))).thenAnswer(inv -> inv.getArgument(0));
 
         RefreshToken result = refreshTokenService.create(testUser);
 
         assertNotNull(result);
-        assertEquals("new-token-uuid", result.getToken());
+        assertNotNull(result.getRawToken());
+        assertNotEquals(result.getRawToken(), result.getToken());
+        assertEquals(RefreshTokenService.hash(result.getRawToken()), result.getToken());
         assertNotNull(result.getFamilyId());
         verify(refreshTokenRepository).save(any(RefreshToken.class));
         verify(refreshTokenRepository, never()).revokeByFamilyId(any(), any());
@@ -80,15 +79,17 @@ class RefreshTokenRotationTest {
     @DisplayName("rotate() отзывает старый токен и возвращает новый токен в той же семье")
     void rotate_ValidToken_RevokesOldAndReturnsNewTokenInSameFamily() {
         String familyId = UUID.randomUUID().toString();
-        RefreshToken validToken = new RefreshToken("valid-token", testUser, familyId, Instant.now().plusSeconds(3600));
-        when(refreshTokenRepository.findByToken("valid-token")).thenReturn(Optional.of(validToken));
+        RefreshToken validToken = new RefreshToken(RefreshTokenService.hash("valid-token"), testUser, familyId, Instant.now().plusSeconds(3600));
+        when(refreshTokenRepository.findByToken(RefreshTokenService.hash("valid-token"))).thenReturn(Optional.of(validToken));
         
         when(refreshTokenRepository.save(any(RefreshToken.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         RefreshToken result = refreshTokenService.rotate("valid-token");
 
         assertNotNull(result);
-        assertNotEquals("valid-token", result.getToken());
+        assertNotNull(result.getRawToken());
+        assertNotEquals("valid-token", result.getRawToken());
+        assertEquals(RefreshTokenService.hash(result.getRawToken()), result.getToken());
         assertEquals(familyId, result.getFamilyId());
         assertEquals(testUser, result.getUser());
         assertTrue(validToken.isRevoked());
@@ -99,11 +100,11 @@ class RefreshTokenRotationTest {
     @DisplayName("rotate() при обнаружении повторного использования (Token Reuse) отзывает всю семью токенов")
     void rotate_RevokedToken_TriggersReuseDetectionAndRevokesFamily() {
         String familyId = UUID.randomUUID().toString();
-        RefreshToken revokedToken = new RefreshToken("already-used-token", testUser, familyId, Instant.now().plusSeconds(3600));
+        RefreshToken revokedToken = new RefreshToken(RefreshTokenService.hash("already-used-token"), testUser, familyId, Instant.now().plusSeconds(3600));
         revokedToken.setRevoked(true);
         revokedToken.setRevokedAt(Instant.now().minusSeconds(60));
 
-        when(refreshTokenRepository.findByToken("already-used-token")).thenReturn(Optional.of(revokedToken));
+        when(refreshTokenRepository.findByToken(RefreshTokenService.hash("already-used-token"))).thenReturn(Optional.of(revokedToken));
 
         UnauthorizedException exception = assertThrows(
                 UnauthorizedException.class,
@@ -118,20 +119,23 @@ class RefreshTokenRotationTest {
     @DisplayName("rotate() в пределах grace period (15 сек) возвращает активный токен без сброса сессии")
     void rotate_RevokedToken_WithinGracePeriod_ReturnsActiveToken() {
         String familyId = UUID.randomUUID().toString();
-        RefreshToken revokedToken = new RefreshToken("recently-used-token", testUser, familyId, Instant.now().plusSeconds(3600));
+        RefreshToken revokedToken = new RefreshToken(RefreshTokenService.hash("recently-used-token"), testUser, familyId, Instant.now().plusSeconds(3600));
         revokedToken.setRevoked(true);
         revokedToken.setRevokedAt(Instant.now().minusSeconds(5));
 
-        RefreshToken activeToken = new RefreshToken("active-token", testUser, familyId, Instant.now().plusSeconds(3600));
+        RefreshToken activeToken = new RefreshToken(RefreshTokenService.hash("active-token"), testUser, familyId, Instant.now().plusSeconds(3600));
 
-        when(refreshTokenRepository.findByToken("recently-used-token")).thenReturn(Optional.of(revokedToken));
+        when(refreshTokenRepository.findByToken(RefreshTokenService.hash("recently-used-token"))).thenReturn(Optional.of(revokedToken));
         when(refreshTokenRepository.findActiveByFamilyId(familyId)).thenReturn(java.util.List.of(activeToken));
+        when(refreshTokenRepository.save(any(RefreshToken.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         RefreshToken result = refreshTokenService.rotate("recently-used-token");
 
+        // Digests only: the sibling raw token cannot be returned, a new token in the same family is issued instead.
         assertNotNull(result);
-        assertEquals("active-token", result.getToken());
+        assertNotNull(result.getRawToken());
         assertEquals(familyId, result.getFamilyId());
+        assertFalse(activeToken.isRevoked());
         verify(refreshTokenRepository, never()).revokeByFamilyId(any(), any());
     }
 
@@ -139,8 +143,8 @@ class RefreshTokenRotationTest {
     @DisplayName("rotate() выбрасывает UnauthorizedException если токен истёк")
     void rotate_ExpiredToken_ThrowsUnauthorizedException() {
         String familyId = UUID.randomUUID().toString();
-        RefreshToken expiredToken = new RefreshToken("expired-token", testUser, familyId, Instant.now().minusSeconds(10));
-        when(refreshTokenRepository.findByToken("expired-token")).thenReturn(Optional.of(expiredToken));
+        RefreshToken expiredToken = new RefreshToken(RefreshTokenService.hash("expired-token"), testUser, familyId, Instant.now().minusSeconds(10));
+        when(refreshTokenRepository.findByToken(RefreshTokenService.hash("expired-token"))).thenReturn(Optional.of(expiredToken));
 
         assertThrows(UnauthorizedException.class, () -> refreshTokenService.rotate("expired-token"));
     }

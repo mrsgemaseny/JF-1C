@@ -16,9 +16,19 @@ import {
 import { billingApi, InvoiceDto, SubscriptionDto } from '@/entities/billing/api/billingApi';
 import { paymentReceiptApi, PaymentReceiptDto, PaymentRequisitesDto } from '@/entities/billing/api/paymentReceiptApi';
 import { PaymentModal } from '@/features/billing/ui/PaymentModal';
+import { PaymentReturnBanner } from '@/features/billing/ui/PaymentReturnBanner';
 import { KaspiQrPaymentCard } from '@/features/billing/ui/KaspiQrPaymentCard';
 import { PaymentHistoryTable } from '@/features/billing/ui/PaymentHistoryTable';
 import { BILLING_PLANS, getLocalizedPlanName, getPlanIdBySubscription } from '@/entities/billing/model/billingPlans';
+
+const ORDER_ID_PATTERN = /^[A-Za-z0-9-]{1,64}$/;
+
+/** The provider sends the buyer back with ?pay=<order id>; anything that is not a plain id is ignored. */
+function readReturnOrderId(): string | null {
+  if (typeof window === 'undefined') return null;
+  const value = new URLSearchParams(window.location.search).get('pay');
+  return value && ORDER_ID_PATTERN.test(value) ? value : null;
+}
 
 export const ClientBillingPage: React.FC = () => {
   const { t, i18n } = useTranslation(['common', 'landing']);
@@ -34,6 +44,16 @@ export const ClientBillingPage: React.FC = () => {
   const [selectedPlanForModal, setSelectedPlanForModal] = useState<'start' | 'standard' | 'pro' | 'corporate' | undefined>(undefined);
   const [modalAmount, setModalAmount] = useState<number | undefined>(undefined);
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceDto | null>(null);
+  const [returnOrderId] = useState<string | null>(readReturnOrderId);
+
+  useEffect(() => {
+    // Drop the parameter so a page refresh does not restart the status check.
+    if (returnOrderId && typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('pay');
+      window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash);
+    }
+  }, [returnOrderId]);
 
   const loadData = async (refreshOnly = false) => {
     if (refreshOnly) {
@@ -137,6 +157,10 @@ export const ClientBillingPage: React.FC = () => {
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
+      {returnOrderId && (
+        <PaymentReturnBanner orderId={returnOrderId} onSettled={() => loadData(true)} />
+      )}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>

@@ -138,7 +138,9 @@ class AuthServiceUnitTests {
         
         when(authManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenReturn(authentication);
-        when(refreshTokenService.create(user)).thenReturn(new RefreshToken("refresh123", user, Instant.now().plus(Duration.ofDays(1))));
+        RefreshToken issued = new RefreshToken(RefreshTokenService.hash("refresh123"), user, Instant.now().plus(Duration.ofDays(1)));
+        issued.setRawToken("refresh123");
+        when(refreshTokenService.create(user)).thenReturn(issued);
         when(jwtService.generateAccessToken(user)).thenReturn("access123");
         AuthResponse response = authService.login(request);
         

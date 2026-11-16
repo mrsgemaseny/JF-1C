@@ -4,6 +4,7 @@ import { Copy, Check, UploadCloud, FileText, X, AlertCircle, Building, QrCode, C
 import { paymentReceiptApi, PaymentRequisitesDto } from '@/entities/billing/api/paymentReceiptApi';
 import { BILLING_PLANS, getLocalizedPlanName, getPlanIdBySubscription, BillingPlanItem } from '@/entities/billing/model/billingPlans';
 import { KaspiQrPaymentCard } from './KaspiQrPaymentCard';
+import { OnlinePaymentPanel } from './OnlinePaymentPanel';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -233,6 +234,11 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                   <span>{error}</span>
                 </div>
               )}
+
+              {/* Online methods exist only for an issued invoice: the invoice fixes amount and owner */}
+              {invoiceId && defaultAmount ? (
+                <OnlinePaymentPanel invoiceId={invoiceId} amount={defaultAmount} />
+              ) : null}
 
               {/* Payment Method Selector */}
               <div className="flex rounded-xl bg-gray-100 p-1 text-xs font-semibold">

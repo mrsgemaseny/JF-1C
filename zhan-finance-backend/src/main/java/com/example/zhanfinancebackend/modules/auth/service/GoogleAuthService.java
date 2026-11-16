@@ -211,7 +211,7 @@ public class GoogleAuthService {
 
         return new AuthResponse(
                 jwtService.generateAccessToken(user),
-                refreshToken.getToken(),
+                refreshToken.getRawToken(),
                 "Bearer",
                 user.getId(),
                 user.getEmail(),

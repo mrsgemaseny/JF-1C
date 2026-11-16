@@ -2085,6 +2085,19 @@
         "rejected": "Rejected",
         "confirmed": "Confirmed"
       }
+    },
+    "onlinePay": {
+      "cardTitle": "Pay by card online",
+      "cardDesc": "Secure payment through Freedom Pay. Your subscription is activated automatically after payment.",
+      "cardBtn": "Pay {{amount}} by card",
+      "redirecting": "Redirecting to payment...",
+      "startError": "Could not start the payment. Please try again later or pay by transfer.",
+      "kaspiHintTitle": "Pay in Kaspi.kz by invoice number",
+      "kaspiHint": "In the Kaspi.kz app open Payments, find ZHAN FINANCE and enter invoice number {{invoiceId}}.",
+      "returnChecking": "Checking your payment...",
+      "returnPaid": "Payment received. Your subscription is active.",
+      "returnFailed": "The payment did not go through and the invoice remains unpaid.",
+      "returnPending": "The payment is being processed. The status will update within a few minutes."
     }
   }
 }
